@@ -12,7 +12,7 @@ import { JwtStrategy } from './guard/jwt.strategy';
 
 export const jwtConstants = {
     JWT_SECRET: "qeD`i3AHn'MbR)H[DS>'<7(YxNpX,8M`>]m6LA/s",
-    TOKEN_EXPIRE: "60s"
+    TOKEN_EXPIRE: "3h"
 };
 
 

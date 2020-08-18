@@ -1,27 +1,17 @@
 import {
-    Body,
-    Controller,
-    HttpException,
-    HttpStatus,
-    Post,
-    Res,
-    Put,
-    Param,
-    UseInterceptors,
-    UploadedFile, UploadedFiles, Get,
-} from '@nestjs/common';
+    Body, Controller, HttpException, HttpStatus, Post, Res, Put, Param, UseInterceptors, UploadedFile, UploadedFiles, Get } from '@nestjs/common';
 import { OrganisationService } from '../services/organisation.service';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags, ApiConsumes } from '@nestjs/swagger';
 import * as fromDto from '../dto';
 import { Response } from 'express';
+import * as fileSystem from 'fs';
 
 import * as _ from 'lodash';
 import * as text from '../constants/en';
+import * as fileOperations from '../helpers/fileUpload.helper';
 
 import { IOrganisation } from '../interfaces/organisation.interface';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiImplicitFile } from '@nestjs/swagger/dist/decorators/api-implicit-file.decorator';
-import { MulterField } from '@nestjs/platform-express/multer/interfaces/multer-options.interface';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 
 
 @ApiTags('Organisation')
@@ -56,13 +46,7 @@ export class OrganisationController {
 
 
             return response.status(HttpStatus.OK)
-                .jsonp(
-                    {
-                        status: true,
-                        message: text.ORGANISATION_CREATED_SUCCESS,
-                        response: _.omit(organisationObject, 'password'),
-                    },
-                );
+                .jsonp( { status: true,message: text.ORGANISATION_CREATED_SUCCESS, response: _.omit(organisationObject, 'password')} );
 
         } catch (e) {
             this.handleErrorLogs(e);
@@ -73,35 +57,28 @@ export class OrganisationController {
 
 
     // complete organisation profile
-    @UseInterceptors(FileInterceptor('pictures'))
+    @UseInterceptors(FilesInterceptor('pictures', 20, {storage: fileOperations.pictureDiskStorage, fileFilter: fileOperations.pictureFileFilter}))
     @ApiConsumes('multipart/form-data')
     @ApiBody({ required: true, type: fromDto.CreateOrganisationProfileDto })
     @ApiParam({ required: true, name: 'id' })
     @ApiOperation({ summary: 'This api will help to complete the organisation profile' })
     @ApiResponse({ status: 200 })
-    @Put('createProfile/:id')
-    public async completeOrganisationProfile(@Body() organisationDto: fromDto.CreateOrganisationProfileDto, @Res() response: Response, @Param() requestParameter: {id: string}, @UploadedFiles() files: any): Promise<any> {
+    @Put('updateProfile/:id')
+    public async completeOrganisationProfile(@Body() organisationDto: fromDto.CreateOrganisationProfileDto, @Res() response: Response, @Param() requestParameter: {id: string}, @UploadedFiles() files: any[]): Promise<any> {
 
         try {
 
-            console.log(organisationDto, files)
+            const pictures: string[] = files.map( file => file.path);
+            const {description, organisationName} = organisationDto;
+            const interests: string[] = organisationDto.interests.split(',');
 
-            /*const organisationObject: IOrganisation = ( await this.organisationService.getSingleOrganisation({_id: requestParameter.id}) );
+            const updateOrganisationProfile: IOrganisation = await this.organisationService.updateOrganisationById(requestParameter.id, {pictures, interests, description, organisationName })
 
-            if ( isOrganisationExist ) {
+            console.log(files)
 
-                return response.status(HttpStatus.NOT_ACCEPTABLE)
-                    .jsonp(
-                        { status: false, message: text.ORGANISATION_ALREADY_EXIST, response: null}
-                    )
-            }
-
-            const organisationObject: IOrganisation = ( await this.organisationService.addOrganisation( organisationDto ) );
-
-            */
             return response.status(HttpStatus.OK)
                 .jsonp(
-                    { status: true, message: text.ORGANISATION_CREATED_SUCCESS, response: null },
+                    { status: true, message: text.ORGANISATION_CREATED_SUCCESS, response: updateOrganisationProfile },
                 );
 
         } catch (e) {
@@ -116,20 +93,25 @@ export class OrganisationController {
     @ApiParam({ required: true, name: 'id' })
     @ApiOperation({ summary: 'This API will provide the facility to update organisation logo' })
     @ApiResponse({ status: 200 })
-    @UseInterceptors(FileInterceptor('logo'))
+    @UseInterceptors(FileInterceptor('logo', {storage: fileOperations.logoDiskStorage, fileFilter: fileOperations.logoFileFilter}))
     @ApiConsumes('multipart/form-data')
     @ApiBody({type: fromDto.UpdateOrganisationLogoDto, required: true})
     @Put('updateLogo/:id')
-    public async updateLogo(@UploadedFile() file: fromDto.UpdateOrganisationLogoDto, @Res() response: Response, @Param() requestParameter: { id: string }): Promise<any> {
+    public async updateLogo(@UploadedFile() file: any, @Res() response: Response, @Param() requestParameter: { id: string }): Promise<any> {
 
         try {
 
+            const organisationProfile = await this.organisationService.getOrganisationById(requestParameter.id);
 
-            console.log(file);
+            if ( organisationProfile.organisationLogo ) {
+                fileSystem.unlinkSync(organisationProfile.organisationLogo);
+            }
+
+            const updateOrganisationLogo = await this.organisationService.updateOrganisationById(requestParameter.id, {organisationLogo: file.path})
 
             return response.status(HttpStatus.OK)
                 .jsonp(
-                    { status: true, message: text.ORGANISATION_CREATED_SUCCESS, response: null },
+                    { status: true, message: text.ORGANISATION_CREATED_SUCCESS, response: updateOrganisationLogo },
                 );
 
         } catch (e) {
@@ -154,6 +136,7 @@ export class OrganisationController {
 
         } catch (e) {
             this.handleErrorLogs(e);
+            console.log(e.message)
             throw new HttpException(text.VERIFICATION_CODE_RESENT_FAIL, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 

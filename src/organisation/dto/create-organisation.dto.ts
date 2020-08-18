@@ -40,6 +40,16 @@ export class CreateOrganisationProfileDto extends PickType(CreateOrganisationDto
 
 
     @ApiProperty({
+        type: 'array',
+        items: {
+            type: 'string',
+        },
+        required: true
+    })
+    public readonly interests: string;
+
+
+    @ApiProperty({
         type: String
     })
     public readonly description: string;
@@ -47,8 +57,11 @@ export class CreateOrganisationProfileDto extends PickType(CreateOrganisationDto
 
     @ApiProperty({
         required: true,
-        type: 'string',
-        format: 'binary'
+        items: {
+            type: 'file',
+            format: 'binary'
+        },
+        type: 'array'
     })
     public readonly pictures: any[];
 

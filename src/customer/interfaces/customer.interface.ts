@@ -27,3 +27,16 @@ export interface ICustomerWithPassword extends ICustomer {
 
     readonly password: string;
 }
+
+
+export interface FilterFileOptions {
+    readonly fieldname: string;
+    readonly originalname: string;
+    readonly encoding: string;
+    readonly mimetype: string;
+    readonly size: number;
+    readonly destination: string;
+    readonly filename: string;
+    readonly path: string;
+    readonly buffer: Buffer
+}

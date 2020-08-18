@@ -39,4 +39,10 @@ export class CustomerSocket implements OnGatewayDisconnect {
     }
 
 
+    public newAccountCreated(customer: ICustomer): void {
+
+        this.server.emit('new-customer-evt', {customer});
+    }
+
+
 }

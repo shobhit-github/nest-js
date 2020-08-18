@@ -1,4 +1,4 @@
-import { Body, Controller, HttpException, HttpStatus, Param, Post, Put, Res } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, HttpStatus, Param, Post, Put, Res } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
 import {Response} from "express";
 import { AuthDto, ForgetPasswordDto, UpdatePasswordDto } from "../dto/auth.dto";
@@ -322,6 +322,13 @@ export class AuthenticationController {
             throw new HttpException(text.LOGOUT_FAIL, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
+    }
+
+
+    @Get('logo/:fileId')
+    async serveAvatar(@Param('fileId') fileId, @Res() response): Promise<any> {
+        console.log(fileId, process.cwd())
+        response.sendFile(fileId, { root: process.cwd() + '/_uploads/logo'});
     }
 
 

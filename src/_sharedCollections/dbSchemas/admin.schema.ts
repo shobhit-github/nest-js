@@ -59,8 +59,8 @@ export class Admin extends Document {
 
 
     @Prop({
-        required: true,
-        default: moment().toDate()
+        type: Date,
+        default: Date.now
     })
     public readonly createdAt: Date;
 

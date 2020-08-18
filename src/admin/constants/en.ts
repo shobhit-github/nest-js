@@ -17,3 +17,4 @@ export const INTERNAL_SERVER_ERROR: string = 'There is an internal server error'
 export const WEB_SOCKET_USER_CONNECTION_SUCCESS: string = 'Connect set for user ';
 export const WEB_SOCKET_DISCONNECT_SUCCESS: string = 'Web Socket dis-connected for admin';
 
+export const FILE_ACCEPT_IMAGE: string = 'Only image related file can be acceptable';

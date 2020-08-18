@@ -29,7 +29,6 @@ export class Customer extends Document {
 
     @Prop({
         required: true,
-        unique: true
     })
     public readonly password: string;
 
@@ -57,8 +56,8 @@ export class Customer extends Document {
 
 
     @Prop({
-        required: true,
-        default: moment().toDate()
+        type: Date,
+        default: Date.now
     })
     public readonly createdAt: Date;
 

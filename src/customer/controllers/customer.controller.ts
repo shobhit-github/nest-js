@@ -1,5 +1,17 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Param, Post, Put, Res } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+    Body,
+    Controller,
+    Get,
+    HttpException,
+    HttpStatus,
+    Param,
+    Post,
+    Put,
+    Query,
+    Res,
+    UseGuards,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {Response} from "express";
 
 import * as bCrypt from 'bcrypt'
@@ -13,6 +25,8 @@ import * as utils from '../../_sharedCollections/helpers/utils';
 
 import { ICustomer } from "../interfaces/customer.interface";
 import { CustomerSocket } from '../webSockets/customer-socket';
+import { JwtAuthGuard } from '../../auth/guard/jwt.guard';
+import { PaginateResult } from "mongoose";
 
 
 
@@ -41,6 +55,8 @@ export class CustomerController {
     @Post('create')
     public async addNewCustomer(@Body() customerDto: fromDto.CreateCustomerDto, @Res() response: Response): Promise<any> {
 
+        console.log(customerDto);
+
         const hashedPassword = await bCrypt.hash(customerDto.password, 10);
         const verificationCode: number = utils.generateRandomNumber(1000, 9999);
 
@@ -61,8 +77,9 @@ export class CustomerController {
             const updatedCodeResponse = this.customerService.updateVerificationCode(customerObject._id, verificationCode);
 
             const finalResponse = ( await Promise.all([emailResponse, updatedCodeResponse]) );
+            this.customerSocket.newAccountCreated(_.omit(customerObject, 'password'));
 
-            console.log(finalResponse);
+            console.log(finalResponse)
 
             return response.status(HttpStatus.OK)
                 .jsonp(
@@ -84,7 +101,7 @@ export class CustomerController {
     @ApiParam({name: 'id', required: true})
     @ApiOperation({summary: 'Verification code confirmation help to go head in the app'})
     @ApiResponse({ status: 200 })
-    @Put('confirmVerificationCode/:customerId')
+    @Put('confirmVerificationCode/:id')
     public async confirmVerificationCode(@Body() requestBody: fromDto.UpdateVerificationCodeDto, @Res() response: Response, @Param() requestParameter: {id: string}): Promise<any> {
 
         try {
@@ -126,7 +143,7 @@ export class CustomerController {
     @ApiParam({name: 'id', required: true})
     @ApiOperation({summary: 'Resend verification code if the code have not received yet'})
     @ApiResponse({ status: 200 })
-    @Get('resendCode/:customerId')
+    @Get('resendCode/:id')
     public async resendVerificationCode(@Param() requestParameter: {id: string}, @Res() response: Response): Promise<any> {
 
         const verificationCode: number = utils.generateRandomNumber(1000, 9999);
@@ -185,6 +202,30 @@ export class CustomerController {
 
 
 
+
+    // get customer list by pagination
+    // @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiQuery({name: 'query', type: Object})
+    @ApiOperation({summary: 'Retrieve customer data list with paginated format'})
+    @ApiResponse({ status: 200 })
+    @Get('listCustomer')
+    public async getCustomers(@Query() requestQuery: any, @Res() response: Response): Promise<any> {
+
+        try {
+
+            console.log(requestQuery);
+            const listCustomer: PaginateResult<ICustomer> = await this.customerService.getAllCustomer(requestQuery.query, requestQuery);
+
+            console.log(listCustomer);
+            response.status(HttpStatus.OK)
+                .jsonp({status: true, message: text.LIST_CUSTOMER_SUCCESS, response: listCustomer})
+
+        } catch (e) {
+            this.handleErrorLogs(e);
+            throw new HttpException(text.INTERNAL_SERVER_ERROR, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
 
 

@@ -4,7 +4,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from "mongoose";
 
-import * as moment from "moment";
 import { defaultProfileStatusForOrg, ProfileStatus } from "./models/profile-model";
 
 
@@ -26,9 +25,21 @@ export class Organisation extends Document {
 
 
     @Prop({
-        required: true
+        type: String
     })
     public readonly description: string;
+
+
+    @Prop({
+        default: []
+    })
+    public readonly interests: string[];
+
+
+    @Prop({
+        default: null
+    })
+    public readonly phone: string;
 
 
     @Prop({
@@ -54,7 +65,8 @@ export class Organisation extends Document {
 
 
     @Prop({
-        default: null
+        default: null,
+        type: String,
     })
     public readonly password: string;
 
@@ -66,9 +78,8 @@ export class Organisation extends Document {
 
 
     @Prop({
-        required: true,
-        unique: true,
-        default: moment().toDate()
+        type: Date,
+        default: Date.now
     })
     public readonly createdAt: Date;
 

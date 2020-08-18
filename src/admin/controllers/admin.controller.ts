@@ -91,31 +91,5 @@ export class AdminController {
     }
 
 
-
-    // get customer list by pagination
-    @UseGuards(JwtAuthGuard)
-    @ApiBearerAuth()
-    @ApiQuery({name: 'query', type: Object})
-    @ApiOperation({summary: 'Retrieve customer data list with paginated format'})
-    @ApiResponse({ status: 200 })
-    @Get('listCustomer')
-    public async getCustomers(@Query() requestQuery: any, @Res() response: Response): Promise<any> {
-
-        try {
-
-            console.log(requestQuery);
-            const listCustomer: PaginateResult<ICustomer> = await this.customerService.getAllCustomer(requestQuery.query, requestQuery);
-
-            console.log(listCustomer);
-            response.status(HttpStatus.OK)
-                .jsonp({status: true, message: text.LIST_CUSTOMER_SUCCESS, response: listCustomer})
-
-        } catch (e) {
-            this.handleErrorLogs(e);
-            throw new HttpException(text.INTERNAL_SERVER_ERROR, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-
     private handleErrorLogs = (error: any): void => console.log(error)
 }

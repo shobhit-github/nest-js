@@ -15,3 +15,5 @@ export const VERIFICATION_CODE_CONFIRM_FAIL: string = 'Verification code not con
 export const WEB_SOCKET_USER_CONNECTION_SUCCESS: string = 'Connect set for user ';
 export const WEB_SOCKET_DISCONNECT_SUCCESS: string = 'Web Socket dis-connected for organisation ';
 
+export const FILE_ACCEPT_IMAGE: string = 'Only image related file can be acceptable';
+

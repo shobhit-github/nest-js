@@ -5,6 +5,7 @@ import { MongooseModule } from "@nestjs/mongoose";
 import { OrganisationSchema, Organisation } from 'src/_sharedCollections/dbSchemas/organisation.schema';
 import { NestMailerService } from "../_sharedCollections/mailer/nest-mailer.service";
 import { OrganisationSocket } from './webSockets/organisation-socket';
+import { MulterModule } from '@nestjs/platform-express';
 
 @Module({
     providers: [
@@ -16,7 +17,8 @@ import { OrganisationSocket } from './webSockets/organisation-socket';
     imports: [
         MongooseModule.forFeature([
             { schema: OrganisationSchema, name: Organisation.name, collection: 'Organisations'}
-        ])
+        ]),
+        MulterModule.register({dest: '../_uploads'})
     ],
     exports: [ OrganisationService, OrganisationSocket ]
 })
