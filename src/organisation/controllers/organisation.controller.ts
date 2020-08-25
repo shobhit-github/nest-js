@@ -45,7 +45,7 @@ export class OrganisationController {
             const organisationObject: IOrganisation = (await this.organisationService.addOrganisation(organisationDto));
 
 
-            return response.status(HttpStatus.OK)
+            return response.status(HttpStatus.CREATED)
                 .jsonp( { status: true,message: text.ORGANISATION_CREATED_SUCCESS, response: _.omit(organisationObject, 'password')} );
 
         } catch (e) {
@@ -76,7 +76,7 @@ export class OrganisationController {
 
             console.log(files)
 
-            return response.status(HttpStatus.OK)
+            return response.status(HttpStatus.CREATED)
                 .jsonp(
                     { status: true, message: text.ORGANISATION_CREATED_SUCCESS, response: updateOrganisationProfile },
                 );
@@ -89,7 +89,7 @@ export class OrganisationController {
     }
 
 
-    // complete organisation profile
+    // upload organisation logo
     @ApiParam({ required: true, name: 'id' })
     @ApiOperation({ summary: 'This API will provide the facility to update organisation logo' })
     @ApiResponse({ status: 200 })
@@ -109,7 +109,7 @@ export class OrganisationController {
 
             const updateOrganisationLogo = await this.organisationService.updateOrganisationById(requestParameter.id, {organisationLogo: file.path})
 
-            return response.status(HttpStatus.OK)
+            return response.status(HttpStatus.CREATED)
                 .jsonp(
                     { status: true, message: text.ORGANISATION_CREATED_SUCCESS, response: updateOrganisationLogo },
                 );
@@ -121,26 +121,6 @@ export class OrganisationController {
 
     }
 
-
-
-    // send verification code
-    @ApiOperation({summary: 'Resend verification code if the code have not received yet'})
-    @ApiResponse({ status: 200 })
-    @Get('trySocket')
-    public async sampleSocket(@Res() response: Response): Promise<any> {
-
-
-
-        try {
-
-
-        } catch (e) {
-            this.handleErrorLogs(e);
-            console.log(e.message)
-            throw new HttpException(text.VERIFICATION_CODE_RESENT_FAIL, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
-    }
 
 
     private handleErrorLogs = (error: any): void => console.log(error);

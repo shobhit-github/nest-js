@@ -1,5 +1,7 @@
-import { Body, Controller, HttpException, HttpStatus, Post, Res, Get, UseGuards, Req, Query } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+    Body, Controller, HttpException, HttpStatus, Post, Res, Get, UseGuards, Req, Put, Param
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {Response, Request} from "express";
 
 import * as bCrypt from 'bcrypt'
@@ -12,9 +14,7 @@ import { AdminService } from "../services/admin.service";
 import { IAdmin } from "../interfaces/admin.interface";
 import { JwtAuthGuard } from 'src/auth/guard/jwt.guard';
 
-import { PaginateResult } from "mongoose";
-import { ICustomer } from '../../customer/interfaces/customer.interface';
-import { CustomerService } from '../../customer/services/customer.service';
+import {parallel} from 'async';
 
 
 
@@ -24,8 +24,7 @@ import { CustomerService } from '../../customer/services/customer.service';
 export class AdminController {
 
 
-    constructor(private readonly adminService: AdminService,
-                private readonly customerService: CustomerService) {
+    constructor(private readonly adminService: AdminService) {
     }
 
 
@@ -53,7 +52,7 @@ export class AdminController {
             const adminObject: IAdmin = ( await this.adminService.addAdmin( { ...adminDto, password: hashedPassword } ) );
 
 
-            return response.status(HttpStatus.OK)
+            return response.status(HttpStatus.CREATED)
                 .jsonp(
                     { status: true, message: text.ADMIN_CREATED_SUCCESS, response: _.omit(adminObject, 'password')}
                 )
@@ -89,6 +88,34 @@ export class AdminController {
         }
 
     }
+
+    // update admin detail
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({summary: 'This api help to update the existing admin profile by admin id and payload'})
+    @ApiResponse({ status: 200 })
+    @ApiParam({name: 'id', required: true})
+    @Put('updateProfile/:id')
+    public async updateProfile(@Res() response: Response, @Param() requestParameter: {id: string}, @Body() updateAdminDto: fromAdminDto.UpdateAdminDto): Promise<any> {
+
+        try {
+
+            const userObject: IAdmin = await this.adminService.updateAdminById(requestParameter.id, updateAdminDto);
+
+            if (!userObject) {
+                return response.status(HttpStatus.BAD_REQUEST).jsonp({status: false, message: text.ADMIN_UPDATED_FAILED});
+            }
+
+            return response.status(HttpStatus.OK).jsonp({status: true, message: text.ADMIN_UPDATED_FAILED, response: _.omit(userObject, 'password')});
+
+        } catch (e) {
+            this.handleErrorLogs(e);
+            throw new HttpException(text.ADMIN_UPDATED_FAILED, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+
+    }
+
+
 
 
     private handleErrorLogs = (error: any): void => console.log(error)

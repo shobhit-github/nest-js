@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { PaginateModel, PaginateResult } from "mongoose";
 import { InjectModel } from "@nestjs/mongoose";
-import { ICustomer, ICustomerWithPassword } from '../interfaces/customer.interface';
+import { ICustomer } from '../interfaces/customer.interface';
 import * as fromDto from "../dto/";
 import { Customer } from "src/_sharedCollections/dbSchemas/customer.schema";
 import { NestMailerService } from "../../_sharedCollections/mailer/nest-mailer.service";
@@ -34,6 +34,10 @@ export class CustomerService {
 
     // Get a single customer by object field
     public getSingleCustomer = async (object: any): Promise<any> => await this.customerModel.findOne(object).exec();
+
+
+    // Get a single customer by object field
+    public getSingleCustomerCategory = async (object: any): Promise<any> => await this.customerModel.findOne(object).populate('interests').exec();
 
 
     // Get a count of customer by object field
@@ -74,6 +78,32 @@ export class CustomerService {
     public resendVerificationCode = async (customer: ICustomer, verificationCode: number): Promise<any> => (
         await this.nestMailerService.reSendCode({to: customer.email, context: {verificationCode } })
     );
+
+
+    // do like or favour project(s)
+    public saveInterests = async (customerId: string, interests: string[] ): Promise<ICustomer> => {
+        return this.customerModel.findByIdAndUpdate(customerId, { interests } );
+    }
+
+
+    // do like or favour project(s)
+    public projectFavourOrLike = async (customerId: string, projectIds: string[], field: string ): Promise<ICustomer> => {
+        return this.customerModel.findByIdAndUpdate(customerId, { $push: { [field]: { $each: projectIds } } });
+    }
+
+
+    // do unfavoured or unlike project(s)
+    public projectUnfavouredOrUnlike = async (customerId: string, projectIds: string[], field: string ): Promise<ICustomer> => {
+        return this.customerModel.findByIdAndUpdate(customerId, { $pullAll: { [field]: projectIds } });
+    }
+
+
+    // do unfavoured or unlike project(s)
+    public populateCustomer = async (customerId: string ): Promise<ICustomer> => {
+        return this.customerModel.findById(customerId).populate('favouriteProjects').populate('projectsLiked');
+    }
+
+
 
 
 }

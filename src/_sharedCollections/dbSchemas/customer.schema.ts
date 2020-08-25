@@ -2,11 +2,12 @@
 
 
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from "mongoose";
+import { Document, Types, Schema as MongooseSchema } from 'mongoose';
 import * as mongoosePaginate from "mongoose-paginate-v2"
 
-import * as moment from "moment";
-import { defaultProfileStatusForCustomer, ProfileStatus } from "./models/profile-model";
+import { defaultProfileStatusForCustomer, ProfileStatus } from "./models/profileStatus-model";
+import { Categories } from './categories.schema';
+import { Project } from './project.schema';
 
 
 @Schema()
@@ -55,6 +56,36 @@ export class Customer extends Document {
     public readonly isPasswordForgot: boolean;
 
 
+    @Prop([
+        {
+            type: MongooseSchema.Types.ObjectId,
+            default: [],
+            ref: Categories.name
+        }
+    ])
+    public readonly interests: Categories[];
+
+
+    @Prop([
+        {
+            type: MongooseSchema.Types.ObjectId,
+            default: [],
+            ref: Project.name
+        }
+    ])
+    public readonly favouriteProjects: Project[];
+
+
+    @Prop([
+        {
+            type: MongooseSchema.Types.ObjectId,
+            default: [],
+            ref: Project.name
+        }
+    ])
+    public readonly projectsLiked: Project[];
+
+
     @Prop({
         type: Date,
         default: Date.now
@@ -66,8 +97,6 @@ export class Customer extends Document {
 }
 
 
-export const CustomerSchema = SchemaFactory.createForClass(Customer)
-
-.plugin(mongoosePaginate);
+export const CustomerSchema = SchemaFactory.createForClass(Customer).plugin(mongoosePaginate);
 
 

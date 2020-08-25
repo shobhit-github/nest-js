@@ -6,6 +6,7 @@ import { CustomerService } from "./services/customer.service";
 import { NestMailerService } from "../_sharedCollections/mailer/nest-mailer.service";
 import { CustomerSocket } from './webSockets/customer-socket';
 import { MulterModule } from '@nestjs/platform-express';
+import { OrganisationModule } from '../organisation/organisation.module';
 
 @Module({
     controllers: [CustomerController],
@@ -14,7 +15,8 @@ import { MulterModule } from '@nestjs/platform-express';
         MongooseModule.forFeature([
             { schema: CustomerSchema, name: Customer.name, collection: 'Customers'}
         ]),
-        MulterModule.register()
+        MulterModule.register(),
+        OrganisationModule
     ],
     exports: [CustomerService, CustomerSocket]
 })

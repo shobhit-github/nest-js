@@ -34,10 +34,18 @@ export class UpdateProfileStatusAndVerificationDto extends IntersectionType(
     UpdateProfileStatusDto,
 ) {}
 
+export class UpdateCustomerInterestDto {
+    @ApiProperty({
+        type: Array
+    })
+    interests: string[];
+}
 
-export class UpdateCustomerDto extends IntersectionType(
-    CreateCustomerDto,
-    UpdateProfileStatusAndVerificationDto,
-) {}
+export class UpdateCustomerWithTask {
+    @ApiProperty({
+        type: Array
+    })
+    listOfIds: string[];
+}
 
 

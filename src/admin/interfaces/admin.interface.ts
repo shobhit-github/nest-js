@@ -12,6 +12,7 @@ export interface IAdmin extends Document {
     readonly email: string;
     readonly username: string;
     readonly phone: number | string
+    readonly profileStatus?: any;
     readonly createdAt: Date | string
 }
 

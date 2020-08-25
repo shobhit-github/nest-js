@@ -1,6 +1,6 @@
 
 
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, OmitType } from '@nestjs/swagger';
 
 export class CreateAdminDto {
 
@@ -42,6 +42,10 @@ export class CreateAdminDto {
 
 
 }
+
+
+export class UpdateAdminDto extends OmitType(CreateAdminDto, ['password', 'username'] as const) {}
+
 
 
 export class UpdateForgetPasswordFlag {

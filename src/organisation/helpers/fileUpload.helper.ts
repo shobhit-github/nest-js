@@ -9,6 +9,8 @@ import * as text from '../constants/en';
 
 const LOGO_PATH: string = '_uploads/logo';
 const TIMELINE_PIC_PATH: string = '_uploads/timelinePictures';
+const PROJECT_PIC_DIR: string = '_uploads/projectPictures';
+
 const randomFileString = (arrayLength: number): string => Array(arrayLength).fill(null).map(() => (Math.round(Math.random() * 16)).toString(16)).join('');
 
 
@@ -42,6 +44,23 @@ export const pictureFileFilter = (req: any, file: FilterFileOptions, callback: (
 
 
 export const pictureDiskStorage = diskStorage({ destination: TIMELINE_PIC_PATH,
+    filename(req: any, file: Express.Multer.File, callback: (error: (HttpException | null), filename: string) => void): void {
+        callback(null, randomFileString(32) + extname(file.originalname))
+    }
+});
+
+
+
+export const projectPictureFileFilter = (req: any, file: FilterFileOptions, callback: (error: (HttpException | null), acceptFile: boolean) => void) => {
+
+    if ( !file.originalname.match(/\.(jpg|jpeg|png|gif)$/) ) {
+        return callback( new HttpException(`${text.FILE_ACCEPT_IMAGE} (fileName: ${file.originalname})`, HttpStatus.BAD_REQUEST), false);
+    }
+    callback(null, true);
+};
+
+
+export const projectPictureDiskStorage = diskStorage({ destination: PROJECT_PIC_DIR,
     filename(req: any, file: Express.Multer.File, callback: (error: (HttpException | null), filename: string) => void): void {
         callback(null, randomFileString(32) + extname(file.originalname))
     }

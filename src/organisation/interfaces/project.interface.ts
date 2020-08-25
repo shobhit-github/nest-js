@@ -1,9 +1,9 @@
 
-
 import { Document } from 'mongoose';
+import { IOrganisation } from './organisation.interface';
 
 
-export interface ProfileStatus {
+export interface ProjectStatus {
 
     readonly isActive: boolean;
     readonly isSuspended: boolean;
@@ -12,24 +12,19 @@ export interface ProfileStatus {
 }
 
 
-export interface ICustomer extends Document {
+export interface IProject extends Document {
 
     readonly _id: string;
-    readonly customerName: string;
-    readonly email: string;
-    readonly projectsLiked?: string[];
-    readonly interests?: string[];
-    readonly favouriteProjects?: string[];
-    readonly profileStatus?: ProfileStatus;
-    readonly verificationCode?: null | number;
-    readonly isPasswordForgot?: boolean;
+    readonly projectName: string;
+    readonly description?: string;
+    readonly projectStatus?: ProjectStatus;
+    readonly projectPictures?: string[];
+    readonly organisation?: IOrganisation | string;
     readonly createdAt: Date | string;
+    readonly targetBudget: number;
+    readonly likes: number;
 }
 
-export interface ICustomerWithPassword extends ICustomer {
-
-    readonly password: string;
-}
 
 
 export interface FilterFileOptions {

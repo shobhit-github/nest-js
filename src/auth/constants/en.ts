@@ -13,12 +13,11 @@ export const INVALID_PARAMETER: string = 'Please choose valid parameter';
 export const PROFILE_IS_NOT_APPROVED: string = 'Your profile is not approved yet';
 export const PROFILE_SUSPENDED: string = 'Your profile has been suspended';
 export const PROFILE_INACTIVE: string = 'Your profile has been deactivated';
-export const PROFILE_IS_NOT_VERIFIED: string = 'Please verify your profile before login';
+export const PROFILE_IS_NOT_VERIFIED: string = 'Your profile is not verified yet, please do verification first';
 
 
 export const FORGET_PASS_EMAIL_SENT_SUCCESS: string = 'We have sent an email to you for password reset';
 export const FORGET_PASS_EMAIL_SENT_FAIL: string = 'Email no sent, due to an internal error';
-
 
 export const INCORRECT_OLD_PASSWORD: string = 'The old password you entered is incorrect';
 export const PASSWORD_UPDATED_SUCCESS: string = 'Your profile password has been updated successfully';

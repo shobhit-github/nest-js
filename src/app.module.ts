@@ -9,6 +9,7 @@ import { AuthModule } from "./auth/auth.module";
 import { DatabaseModule } from "./_sharedCollections/database/database.module";
 import { NestMailerModule } from "./_sharedCollections/mailer/nest-mailer.module";
 import { AppSocket } from './app.socket';
+import { UtilityModule } from './utility/utility.module';
 
 
 
@@ -20,7 +21,8 @@ import { AppSocket } from './app.socket';
             isGlobal: true
         }),
         DatabaseModule,
-        NestMailerModule
+        NestMailerModule,
+        UtilityModule,
     ],
     controllers: [AppController],
     providers: [AppService, AppSocket]

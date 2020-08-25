@@ -42,7 +42,7 @@ export class AuthenticationController {
 
 
 
-    private checkUserProfileStatus = (userType: string, userObject: ICustomer): {message: string} => {
+    private checkUserProfileStatus = (userType: string, userObject: ICustomer | IOrganisation): {message: string} => {
 
         if (userType === 'admin') {
             return {message: null};
@@ -116,12 +116,12 @@ export class AuthenticationController {
 
                 case 'customer': {
                     const userObject: ICustomer = ( await this.customerService.updateCustomerById(_id, {'profileStatus.isLoggedIn': status}));
-                    this.customerSocket.transmitLoginStatus(userObject, status); return userObject;
+                    this.customerSocket.transmitLoginStatus(_.omit(userObject, 'password'), status); return userObject;
                 }
 
                 case 'organisation': {
                     const userObject: IOrganisation = ( await this.organisationService.updateOrganisationById(_id, {'profileStatus.isLoggedIn': status}));
-                    this.organisationSocket.transmitLoginStatus(userObject, status); return userObject;
+                    this.organisationSocket.transmitLoginStatus(_.omit(userObject, 'password'), status); return userObject;
                 }
 
 
@@ -200,7 +200,8 @@ export class AuthenticationController {
     @Post('forgetPassword/:for')
     public async forgetPassword(@Param() requestParameter: {for: "customer" | "admin" | "organisation"}, @Res() response: Response, @Body() requestBody: ForgetPasswordDto) {
 
-        let isUserExist: boolean;
+        let userProfile: IOrganisation  | ICustomer;
+
         const generatedPassword: string = utils.generateRandomString(7);
         const hashedPassword: string = await bCrypt.hash(generatedPassword, 10);
 
@@ -209,22 +210,28 @@ export class AuthenticationController {
             switch (requestParameter.for) {
 
                 case 'customer':
-                    isUserExist = !!( await this.customerService.getCustomerCount({email: <string>requestBody.email}) ); break;
+                    userProfile = ( await this.customerService.getSingleCustomer({email: <string>requestBody.email}) ); break;
 
                 case 'admin':
-                    isUserExist = !!( await this.adminService.getAdminCount({ email: <string>requestBody.email}) ); break;
+                    userProfile = ( await this.adminService.getSingleAdmin({ email: <string>requestBody.email}) ); break;
 
                 case 'organisation':
-                    isUserExist = !!( await this.organisationService.getOrganisationCount({email: <string>requestBody.email}) ); break;
+                    userProfile = ( await this.organisationService.getSingleOrganisation({email: <string>requestBody.email}) ); break;
 
                 default:
                     return response.status(HttpStatus.BAD_REQUEST).jsonp({status: false, message: text.INVALID_PARAMETER, response: null})
             }
 
-
-            if (!isUserExist) {
+            if ( !userProfile ) {
                 return response.status(HttpStatus.BAD_REQUEST).jsonp({status: false, message: text.USER_NOT_FOUND})
             }
+
+            const profileStatusMessage: string = this.checkUserProfileStatus(requestParameter.for, <any>userProfile).message;
+
+            if (profileStatusMessage) {
+                return response.status(HttpStatus.BAD_REQUEST).jsonp({status: false, message: <string>profileStatusMessage})
+            }
+
 
             await this.authenticationService.sendForgetPasswordRequest({email: <string>requestBody.email}, generatedPassword);
 
@@ -247,7 +254,7 @@ export class AuthenticationController {
 
     // update customer password
     @ApiBody({type: UpdatePasswordDto, required: true})
-    @ApiParam({name: 'for', required: true})
+    @ApiParam({name: 'for', required: true, enum: ['customer', 'admin', 'organisation']})
     @ApiParam({name: 'id', required: true})
     @ApiOperation({summary: 'Change of (customer, admin, organisation) password with old password verification'})
     @ApiResponse({ status: 200 })
@@ -302,7 +309,7 @@ export class AuthenticationController {
 
 
     // update customer password
-    @ApiParam({name: 'for', required: true})
+    @ApiParam({name: 'for', required: true, enum: ['customer', 'admin', 'organisation']})
     @ApiParam({name: 'id', required: true})
     @ApiOperation({summary: 'This api will change the login status for (customer, admin, organisation) to manage active login user'})
     @Put(':for/logout/:id')
@@ -324,12 +331,6 @@ export class AuthenticationController {
 
     }
 
-
-    @Get('logo/:fileId')
-    async serveAvatar(@Param('fileId') fileId, @Res() response): Promise<any> {
-        console.log(fileId, process.cwd())
-        response.sendFile(fileId, { root: process.cwd() + '/_uploads/logo'});
-    }
 
 
     private handleErrorLogs = (error: any): void => console.log(error)

@@ -72,4 +72,10 @@ export class OrganisationService {
     public resendVerificationCode = async (organisation: IOrganisation, verificationCode: number): Promise<any> => (
         await this.nestMailerService.reSendCode({to: organisation.email, context: {verificationCode } })
     );
+
+
+    // get Organisation for recommendation list
+    public getOrganisationByInterests = async (ids: string[]): Promise<any> => (
+        await this.organisationModel.find({interests: { $in: ids} }, {password: 0}).exec()
+    );
 }

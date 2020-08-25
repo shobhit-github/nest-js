@@ -33,6 +33,12 @@ export class CustomerSocket implements OnGatewayDisconnect {
     }
 
 
+    public transmitVerificationStatus(customer: ICustomer, status: boolean): void {
+
+        this.server.emit('verification-evt', {customer, status});
+    }
+
+
     public transmitLoginStatus(customer: ICustomer, status: boolean): void {
 
         this.server.emit('login-evt', {customer, status});

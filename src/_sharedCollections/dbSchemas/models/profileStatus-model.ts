@@ -40,6 +40,9 @@ export class ProfileStatus {
 }
 
 
+
+
+
 export const defaultProfileStatusForCustomer: ProfileStatus = {
 
     isActive: true,

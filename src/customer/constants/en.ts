@@ -11,9 +11,15 @@ export const VERIFICATION_CODE_RESENT_FAIL: string = 'Verification not sent due 
 export const LIST_CUSTOMER_SUCCESS: string = 'All customers has been retrieved successfully';
 export const LIST_CUSTOMER_FAILED: string = 'API failed due to an internal error';
 
+export const PROJECT_LIKE_SUCCESS: string = 'Project has been %s successfully';
+export const PROJECT_LIKE_FAILED: string = 'Project %s operation failed due to an internal error';
+export const UNKNOWN_REQUEST: string = 'Unknown request received'
+
 export const VERIFICATION_CODE_CONFIRM_SUCCESS: string = 'Verification code has been confirmed successfully';
 export const INVALID_VERIFICATION_CODE: string = 'You entered invalid verification code';
 export const VERIFICATION_CODE_CONFIRM_FAIL: string = 'Verification code not confirmed due to internal error';
+export const PROFILE_EXIST_NOT_VERIFIED: string = 'You already in system but not verified, we have sent you a verification code';
+
 
 export const WEB_SOCKET_USER_CONNECTION_SUCCESS: string = 'Connect set for user ';
 export const WEB_SOCKET_DISCONNECT_SUCCESS: string = 'Web Socket dis-connected for customer';

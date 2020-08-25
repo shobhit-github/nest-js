@@ -2,9 +2,11 @@
 
 
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from "mongoose";
+import { Document, Schema as MongooseSchema } from 'mongoose';
 
-import { defaultProfileStatusForOrg, ProfileStatus } from "./models/profile-model";
+import { defaultProfileStatusForOrg, ProfileStatus } from "./models/profileStatus-model";
+import { Categories } from './categories.schema';
+import { Project } from './project.schema';
 
 
 @Schema()
@@ -30,10 +32,14 @@ export class Organisation extends Document {
     public readonly description: string;
 
 
-    @Prop({
-        default: []
-    })
-    public readonly interests: string[];
+    @Prop([
+        {
+            type: MongooseSchema.Types.ObjectId,
+            default: [],
+            ref: Categories.name
+        }
+    ])
+    public readonly interests: Categories[];
 
 
     @Prop({
@@ -82,7 +88,6 @@ export class Organisation extends Document {
         default: Date.now
     })
     public readonly createdAt: Date;
-
 
 
 }
