@@ -22,11 +22,17 @@ interface IEmailAddress {
     support: string;
 }
 
+interface IPaymentGateway {
+    apiKey: string;
+    merchantAccountId: string;
+}
+
 
 
 export interface IEnvironment {
-
+    environment: 'DEV' | 'STAGE' | 'PROD';
     database: IDatabaseEnvironment
     smtpSetting?: ISmtpSetting
     emailAddress: IEmailAddress
+    paymentGateway: IPaymentGateway
 }

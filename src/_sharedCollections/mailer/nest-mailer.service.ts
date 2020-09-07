@@ -63,4 +63,22 @@ export class NestMailerService {
         }
 
     }
+
+
+    public sendOrganisationCredentials = (mailOptions): Promise<any> => {
+
+        const subject: string = 'Profile Approved';
+        const from: string = 'Givmo <' + this.configService.get<string>('emailAddress.support') + '>';
+        const template: string = 'organisationCredential';
+
+        try {
+
+            return this.mailerService.sendMail( { ...mailOptions, subject, template, from } );
+
+        } catch (e) {
+
+            return Promise.reject(e)
+        }
+
+    }
 }

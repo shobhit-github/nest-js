@@ -1,10 +1,12 @@
 import { Injectable } from "@nestjs/common";
-import { PaginateModel, PaginateResult } from "mongoose";
+import { Model, PaginateModel, PaginateResult } from 'mongoose';
 import { InjectModel } from "@nestjs/mongoose";
 import { ICustomer } from '../interfaces/customer.interface';
 import * as fromDto from "../dto/";
 import { Customer } from "src/_sharedCollections/dbSchemas/customer.schema";
+import { Request as UserRequest } from "src/_sharedCollections/dbSchemas/request.schema";
 import { NestMailerService } from "../../_sharedCollections/mailer/nest-mailer.service";
+import { IUserRequest } from '../../utility/interfaces/user-request.interface';
 
 
 @Injectable()
@@ -12,6 +14,7 @@ export class CustomerService {
 
 
     constructor(@InjectModel(Customer.name) private readonly customerModel: PaginateModel<ICustomer>,
+                @InjectModel(UserRequest.name) private readonly requestModel: Model<IUserRequest>,
                 private readonly nestMailerService: NestMailerService) {
 
     }
@@ -19,7 +22,7 @@ export class CustomerService {
 
     // update verification code for customer
     public updateVerificationCode = async (customerId: string, code: number): Promise<ICustomer> =>
-        await this.customerModel.findByIdAndUpdate(customerId, <fromDto.UpdateVerificationCodeDto>{ verificationCode: code });
+        await this.customerModel.findByIdAndUpdate(customerId, <fromDto.UpdateVerificationCodeDto>{ verificationCode: code }, {projection: {password: 0}});
 
 
     // fetch all customers
@@ -52,13 +55,13 @@ export class CustomerService {
     // Edit customer details
     public updateCustomerById = async (customerID: string, updateCustomer: any): Promise<ICustomer> =>
         await this.customerModel
-            .findByIdAndUpdate(customerID, updateCustomer, { new: true });
+            .findByIdAndUpdate(customerID, updateCustomer, { new: true, projection: {password: 0} });
 
 
     // Edit customer details
     public updateCustomer = async (condition: any, updateCustomer: any): Promise<ICustomer> =>
         await this.customerModel
-            .findOneAndUpdate(condition, updateCustomer, { new: true });
+            .findOneAndUpdate(condition, updateCustomer, { projection: {password: 0}, new: true });
 
 
     // Delete a customer
@@ -82,19 +85,19 @@ export class CustomerService {
 
     // do like or favour project(s)
     public saveInterests = async (customerId: string, interests: string[] ): Promise<ICustomer> => {
-        return this.customerModel.findByIdAndUpdate(customerId, { interests } );
+        return this.customerModel.findByIdAndUpdate(customerId, { interests }, {projection: {password: 0}} );
     }
 
 
     // do like or favour project(s)
     public projectFavourOrLike = async (customerId: string, projectIds: string[], field: string ): Promise<ICustomer> => {
-        return this.customerModel.findByIdAndUpdate(customerId, { $push: { [field]: { $each: projectIds } } });
+        return this.customerModel.findByIdAndUpdate(customerId, { $push: { [field]: { $each: projectIds } } }, {projection: {password: 0}});
     }
 
 
     // do unfavoured or unlike project(s)
     public projectUnfavouredOrUnlike = async (customerId: string, projectIds: string[], field: string ): Promise<ICustomer> => {
-        return this.customerModel.findByIdAndUpdate(customerId, { $pullAll: { [field]: projectIds } });
+        return this.customerModel.findByIdAndUpdate(customerId, { $pullAll: { [field]: projectIds } }, {projection: {password: 0}});
     }
 
 
@@ -102,6 +105,10 @@ export class CustomerService {
     public populateCustomer = async (customerId: string ): Promise<ICustomer> => {
         return this.customerModel.findById(customerId).populate('favouriteProjects').populate('projectsLiked');
     }
+
+
+    // add new user request
+    public submitUserRequest = async (payload: fromDto.CustomerUserRequestDto): Promise<IUserRequest> => ( await new this.requestModel( payload ) ).save();
 
 
 

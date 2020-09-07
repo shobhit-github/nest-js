@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Param, Post, Put, Query, Res } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, HttpStatus, Param, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 
@@ -9,6 +9,7 @@ import * as fromDto from '../dto';
 import { PaginateResult } from 'mongoose';
 
 import * as text from '../constants/en';
+import * as swaggerDoc from '../constants/swagger';
 import * as utils from '../../_sharedCollections/helpers/utils';
 
 import { ICustomer } from '../interfaces/customer.interface';
@@ -20,9 +21,14 @@ import { OrganisationService } from '../../organisation/services/organisation.se
 import { ProjectService } from '../../organisation/services/project.service';
 import { CustomerService } from '../services/customer.service';
 
-import {waterfall} from 'async';
 import { IOrganisation } from '../../organisation/interfaces/organisation.interface';
 import { IProject } from '../../organisation/interfaces/project.interface';
+import { IUserRequest } from '../../utility/interfaces/user-request.interface';
+import { AdminAuthGuard } from '../../auth/guard/admin.guard';
+import { CustomerAuthGuard } from '../../auth/guard/customer.guard';
+
+
+
 
 
 @ApiTags('Customer')
@@ -73,7 +79,7 @@ export class CustomerController {
 
     // add a customer
     @ApiBody({required: true, type: fromDto.CreateCustomerDto})
-    @ApiOperation({summary: 'Create a new customer for new donations'})
+    @ApiOperation({summary: swaggerDoc.CreateCustomer.summary})
     @ApiResponse({ status: 200 })
     @Post('create')
     public async addNewCustomer(@Body() customerDto: fromDto.CreateCustomerDto, @Res() response: Response): Promise<any> {
@@ -119,11 +125,48 @@ export class CustomerController {
 
 
 
+    // update existing customer
+    @ApiBearerAuth()
+    @UseGuards(CustomerAuthGuard)
+    @ApiBody({required: true, type: fromDto.UpdateCustomerDto})
+    @ApiOperation({summary: swaggerDoc.UpdateCustomer.summary})
+    @ApiParam({name: 'id', required: true})
+    @ApiResponse({ status: 200 })
+    @Put('update/:id')
+    public async updateExistingCustomer(@Body() updateDto: fromDto.UpdateCustomerDto, @Res() response: Response, @Param() requestParam: {id: string}): Promise<any> {
+
+        try {
+
+            const isUserValid: boolean = !!( await this.customerService.getCustomerById(requestParam.id) );
+
+            if ( ! isUserValid ) {
+
+                return response.status(HttpStatus.BAD_REQUEST)
+                    .jsonp( { status: true, message: text.CUSTOMER_NOT_EXIST, response: null} )
+            }
+
+            const updatedProfile: ICustomer = await this.customerService.updateCustomerById(requestParam.id, updateDto)
+
+            return response.status(HttpStatus.CREATED)
+                .jsonp(
+                    { status: true, message: text.CUSTOMER_UPDATED_SUCCESS, response: _.omit(updatedProfile, 'password')}
+                )
+
+        } catch (e) {
+            this.handleErrorLogs(e);
+            throw new HttpException(text.CUSTOMER_UPDATED_FAIL, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
+
+
+
+
 
     // confirm verification code
     @ApiBody({type: fromDto.UpdateVerificationCodeDto, required: true})
     @ApiParam({name: 'id', required: true})
-    @ApiOperation({summary: 'Verification code confirmation help to go head in the app'})
+    @ApiOperation({summary: swaggerDoc.ConfirmVerification.summary})
     @ApiResponse({ status: 200 })
     @Put('confirmVerificationCode/:id')
     public async confirmVerificationCode(@Body() requestBody: fromDto.UpdateVerificationCodeDto, @Res() response: Response, @Param() requestParameter: {id: string}): Promise<any> {
@@ -165,7 +208,7 @@ export class CustomerController {
 
     // send verification code
     @ApiParam({name: 'id', required: true})
-    @ApiOperation({summary: 'Resend verification code if the code have not received yet'})
+    @ApiOperation({summary: swaggerDoc.ResendCode.summary})
     @ApiResponse({ status: 200 })
     @Get('resendCode/:id')
     public async resendVerificationCode(@Param() requestParameter: {id: string}, @Res() response: Response): Promise<any> {
@@ -207,10 +250,10 @@ export class CustomerController {
 
 
     // get customer list by pagination
-    // @UseGuards(JwtAuthGuard)
+    @UseGuards(CustomerAuthGuard)
     @ApiBearerAuth()
     @ApiQuery({name: 'query', type: Object})
-    @ApiOperation({summary: 'Retrieve customer data list with paginated format'})
+    @ApiOperation({summary: swaggerDoc.CustomerList.summary})
     @ApiResponse({ status: 200 })
     @Get('listCustomer')
     public async getCustomers(@Query() requestQuery: any, @Res() response: Response): Promise<any> {
@@ -231,9 +274,9 @@ export class CustomerController {
 
 
     // get customer list by pagination
-    // @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
-    @ApiOperation({summary: 'Update and Retrieve project and organisation recommendation with the help of customer interests'})
+    @UseGuards(CustomerAuthGuard)
+    @ApiOperation({summary: swaggerDoc.RecommendationList.summary})
     @ApiResponse({ status: 200 })
     @ApiParam({name: 'id', required: true})
     @Get('getRecommendations/:id')
@@ -265,12 +308,12 @@ export class CustomerController {
 
 
     // do like to the project
-    // @UseGuards(JwtAuthGuard)
+    @UseGuards(CustomerAuthGuard)
     @ApiBearerAuth()
-    @ApiOperation({summary: 'This api will help to make like, unlike, bookmark and unbooked to a particular project by the customer'})
+    @ApiOperation({summary: swaggerDoc.LikeFavour.summary})
     @ApiResponse({ status: 200 })
     @ApiParam({name: 'id', required: true})
-    @ApiBody({type: fromDto.UpdateCustomerWithTask, required: true, description: 'This API can perform many tasks ( for-example: like, unlike, favourite, unfavoured project and save interest as well). Here you will have to use the project Ids for like, unlike, favourite, unfavoured tasks and use category ids for interest task'})
+    @ApiBody({type: fromDto.UpdateCustomerWithTask, required: true, description: swaggerDoc.LikeFavour.bodyDescription})
     @ApiParam({name: 'do', required: true, enum: ['like', 'unlike', 'favourite', 'unfavored', 'interest']})
     @Put('perform/:do/:id')
     public async doLike(@Param() requestParameter: {id: string, do: fromEnum.Task}, @Body() requestBody: fromDto.UpdateCustomerWithTask, @Res() response: Response): Promise<any> {
@@ -324,6 +367,33 @@ export class CustomerController {
 
 
 
+
+    // submit user request for customer
+    @ApiBearerAuth()
+    @UseGuards(CustomerAuthGuard)
+    @ApiOperation({summary: swaggerDoc.UserRequest.summary })
+    @ApiResponse({ status: 200 })
+    @ApiParam({ name: 'id', required: true })
+    @ApiBody({type: fromDto.UserRequestDto, required: true})
+    @Post('submitRequest/:id')
+    public async submitRequest(@Res() response: Response, @Body() reqBody: fromDto.UserRequestDto, @Param() reqParam: {id: string}): Promise<any> {
+
+        try {
+
+            const requestObject: IUserRequest = await this.customerService.submitUserRequest({ ...reqBody, customer: reqParam.id });
+
+            if ( ! requestObject ) {
+                return response.status(HttpStatus.BAD_REQUEST).jsonp({status: false, message: text.REQUEST_SUBMIT_FAILED, response: null});
+            }
+
+            return response.status(HttpStatus.CREATED).jsonp({status: true, message: text.REQUEST_SUBMIT_SUCCESS, response: requestObject});
+
+        } catch (e) {
+            this.handleErrorLogs(e);
+            throw new HttpException(text.REQUEST_SUBMIT_FAILED, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+
+    }
 
 
 

@@ -22,7 +22,7 @@ export class ProjectService {
 
     // Edit project details
     public updateProjectById = async (projectID: string, updateProject: any): Promise<IProject> =>
-        ( await this.projectModel.findByIdAndUpdate(projectID, updateProject, { new: true }) );
+        ( await this.projectModel.findByIdAndUpdate(projectID, updateProject, { new: true, projection: {password: 0} }) );
 
 
 

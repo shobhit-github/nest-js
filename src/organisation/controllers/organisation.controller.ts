@@ -1,17 +1,37 @@
 import {
-    Body, Controller, HttpException, HttpStatus, Post, Res, Put, Param, UseInterceptors, UploadedFile, UploadedFiles, Get } from '@nestjs/common';
+    Body,
+    Controller,
+    HttpException,
+    HttpStatus,
+    Post,
+    Res,
+    Put,
+    Param,
+    UseInterceptors,
+    UploadedFile,
+    UploadedFiles,
+    Get,
+    UseGuards,
+} from '@nestjs/common';
 import { OrganisationService } from '../services/organisation.service';
-import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags, ApiConsumes } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags, ApiConsumes, ApiBearerAuth } from '@nestjs/swagger';
 import * as fromDto from '../dto';
 import { Response } from 'express';
-import * as fileSystem from 'fs';
 
+import * as fileSystem from 'fs';
 import * as _ from 'lodash';
 import * as text from '../constants/en';
-import * as fileOperations from '../helpers/fileUpload.helper';
+import * as swaggerDoc from '../constants/swagger';
 
+import * as fileOperations from '../helpers/fileUpload.helper';
 import { IOrganisation } from '../interfaces/organisation.interface';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import * as utils from '../../_sharedCollections/helpers/utils';
+import * as bCrypt from 'bcrypt';
+import { IUserRequest } from '../../utility/interfaces/user-request.interface';
+import { CustomerAuthGuard } from '../../auth/guard/customer.guard';
+import { OrganisationAuthGuard } from '../../auth/guard/organisation.guard';
+
 
 
 @ApiTags('Organisation')
@@ -25,7 +45,7 @@ export class OrganisationController {
 
     // add an organisation
     @ApiBody({ required: true, type: fromDto.CreateOrganisationDto })
-    @ApiOperation({ summary: 'Create a new organisation to get new donations' })
+    @ApiOperation({ summary: swaggerDoc.CreateOrganisation.summary })
     @ApiResponse({ status: 200 })
     @Post('create')
     public async addNewOrganisation(@Body() organisationDto: fromDto.CreateOrganisationDto, @Res() response: Response): Promise<any> {
@@ -56,14 +76,78 @@ export class OrganisationController {
     }
 
 
+    // add an organisation
+    @ApiBearerAuth()
+    @UseGuards(OrganisationAuthGuard)
+    @ApiBody({ required: true, type: fromDto.CreateOrganisationDto })
+    @ApiOperation({ summary: swaggerDoc.UpdateOrganisation.summary })
+    @ApiParam({name: 'id', required: true})
+    @ApiResponse({ status: 200 })
+    @Put('update/:id')
+    public async updateOrganisation(@Param() reqParam: {id: string}, @Body() organisationDto: fromDto.CreateOrganisationDto, @Res() response: Response): Promise<any> {
+
+        try {
+
+            const isValidOrg: boolean = !!(await this.organisationService.getOrganisationById(reqParam.id));
+
+            if ( ! isValidOrg ) {
+
+                return response.status(HttpStatus.BAD_REQUEST)
+                    .jsonp( { status: false, message: text.ORGANISATION_NOT_EXIST, response: null } );
+            }
+
+            const organisationObject: IOrganisation = (await this.organisationService.updateOrganisationById(reqParam.id, organisationDto));
+
+
+            return response.status(HttpStatus.OK)
+                .jsonp( { status: true,message: text.ORGANISATION_UPDATED_SUCCESS, response: _.omit(organisationObject, ['password'])} );
+
+        } catch (e) {
+            this.handleErrorLogs(e);
+            throw new HttpException(text.ORGANISATION_UPDATED_FAILED, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
+
+
+    // upload organisation logo
+    @ApiParam({ required: true, name: 'id' })
+    @ApiOperation({ summary: swaggerDoc.ApproveProfile.summary })
+    @ApiResponse({ status: 200 })
+    @Get('verify/:id')
+    public async approveOrganisationProfile(@Res() response: Response, @Param() requestParameter: { id: string }): Promise<any> {
+
+        try {
+
+            const generatedPassword: string = utils.generateRandomString(7);
+            const hashedPassword: string = await bCrypt.hash(generatedPassword, 10);
+
+
+            const organisationProfile: IOrganisation = ( await this.organisationService.updateOrganisationById(requestParameter.id, {password: hashedPassword}) );
+            await this.organisationService.sendCredentials(organisationProfile, generatedPassword);
+
+
+            return response.status(HttpStatus.CREATED)
+                .jsonp( { status: true, message: text.PROFILE_APPROVED_SUCCESS });
+
+        } catch (e) {
+            this.handleErrorLogs(e);
+            throw new HttpException(text.PROFILE_APPROVED_FAIL, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
+
+
     // complete organisation profile
+    @ApiBearerAuth()
+    @UseGuards(OrganisationAuthGuard)
     @UseInterceptors(FilesInterceptor('pictures', 20, {storage: fileOperations.pictureDiskStorage, fileFilter: fileOperations.pictureFileFilter}))
     @ApiConsumes('multipart/form-data')
     @ApiBody({ required: true, type: fromDto.CreateOrganisationProfileDto })
     @ApiParam({ required: true, name: 'id' })
-    @ApiOperation({ summary: 'This api will help to complete the organisation profile' })
+    @ApiOperation({ summary: swaggerDoc.CompleteProfile.summary })
     @ApiResponse({ status: 200 })
-    @Put('updateProfile/:id')
+    @Put('completeProfile/:id')
     public async completeOrganisationProfile(@Body() organisationDto: fromDto.CreateOrganisationProfileDto, @Res() response: Response, @Param() requestParameter: {id: string}, @UploadedFiles() files: any[]): Promise<any> {
 
         try {
@@ -90,8 +174,10 @@ export class OrganisationController {
 
 
     // upload organisation logo
+    @ApiBearerAuth()
+    @UseGuards(OrganisationAuthGuard)
     @ApiParam({ required: true, name: 'id' })
-    @ApiOperation({ summary: 'This API will provide the facility to update organisation logo' })
+    @ApiOperation({ summary: swaggerDoc.UploadLogo.summary })
     @ApiResponse({ status: 200 })
     @UseInterceptors(FileInterceptor('logo', {storage: fileOperations.logoDiskStorage, fileFilter: fileOperations.logoFileFilter}))
     @ApiConsumes('multipart/form-data')
@@ -117,6 +203,88 @@ export class OrganisationController {
         } catch (e) {
             this.handleErrorLogs(e);
             throw new HttpException(text.ORGANISATION_CREATED_FAILED, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
+
+
+
+    // upload organisation logo
+    @ApiBearerAuth()
+    @UseGuards(OrganisationAuthGuard)
+    @ApiParam({ required: true, name: 'id' })
+    @ApiOperation({ summary: 'Set up bank' })
+    @ApiResponse({ status: 200 })
+    @Post('setUpBankAccount/:id')
+    public async createAccountHolder(@Res() response: Response, @Param() requestParameter: { id: string }): Promise<any> {
+
+        try {
+
+            const createdAccountHolder = await this.organisationService.createAccountHolder({
+                "accountHolderCode": requestParameter.id,
+                "accountHolderDetails": {
+                    "address": {
+                        "country": "US"
+                    },
+                    "businessDetails": {
+                        "doingBusinessAs": "Real Good Restaurant",
+                        "legalBusinessName": "Real Good Restaurant Inc.",
+                        "shareholders": [
+                            {
+                                "name": {
+                                    "firstName": "John",
+                                    "gender": "MALE",
+                                    "lastName": "Carpenter"
+                                },
+                                "address": {
+                                    "country": "NL"
+                                },
+                                "email": "testshareholder@email.com"
+                            }
+                        ]
+                    },
+                    "email": "test@email.com"
+                },
+                "legalEntity": "Business"
+            });
+
+            console.log(createdAccountHolder)
+            return response.status(HttpStatus.OK).jsonp(createdAccountHolder)
+
+        } catch (e) {
+            this.handleErrorLogs(e);
+            throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
+
+
+
+
+
+    // submit user request for customer
+    @ApiBearerAuth()
+    @UseGuards(OrganisationAuthGuard)
+    @ApiOperation({summary: swaggerDoc.UserRequest.summary })
+    @ApiResponse({ status: 200 })
+    @ApiBody({type: fromDto.UserRequestDto, required: true})
+    @ApiParam({ name: 'id', required: true })
+    @Post('submitRequest/:id')
+    public async submitRequest(@Res() response: Response, @Body() reqBody: fromDto.UserRequestDto, @Param() reqParam: {id: string}): Promise<any> {
+
+        try {
+
+            const requestObject: IUserRequest = await this.organisationService.submitUserRequest({ ...reqBody, organisation: reqParam.id });
+
+            if ( ! requestObject ) {
+                return response.status(HttpStatus.BAD_REQUEST).jsonp({status: false, message: text.REQUEST_SUBMIT_FAILED, response: null});
+            }
+
+            return response.status(HttpStatus.CREATED).jsonp({status: true, message: text.REQUEST_SUBMIT_SUCCESS, response: requestObject});
+
+        } catch (e) {
+            this.handleErrorLogs(e);
+            throw new HttpException(text.REQUEST_SUBMIT_FAILED, HttpStatus.INTERNAL_SERVER_ERROR)
         }
 
     }

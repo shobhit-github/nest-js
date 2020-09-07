@@ -21,6 +21,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@adyen/api-library": "^5.0.1",
     "@nestjs-modules/mailer": "^1.5.1",
     "@nestjs/common": "^7.0.0",
     "@nestjs/config": "^0.5.0",

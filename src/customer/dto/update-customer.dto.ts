@@ -1,8 +1,15 @@
 
 
-import { ApiProperty, IntersectionType } from '@nestjs/swagger';
+import { ApiProperty, IntersectionType, OmitType } from '@nestjs/swagger';
 import { ProfileStatus } from '../interfaces/customer.interface';
-import { CreateCustomerDto } from './create-customer.dto';
+import { CreateCustomerDto } from './create-customer.dto'
+import {UserRequestDto} from '../../utility/dto';
+
+export * from '../../utility/dto';
+
+
+export class UpdateCustomerDto extends OmitType(CreateCustomerDto, ['password'] as const) {}
+
 
 export class UpdateProfileStatusDto {
 
@@ -34,12 +41,14 @@ export class UpdateProfileStatusAndVerificationDto extends IntersectionType(
     UpdateProfileStatusDto,
 ) {}
 
+
 export class UpdateCustomerInterestDto {
     @ApiProperty({
         type: Array
     })
     interests: string[];
 }
+
 
 export class UpdateCustomerWithTask {
     @ApiProperty({
@@ -48,4 +57,17 @@ export class UpdateCustomerWithTask {
     listOfIds: string[];
 }
 
+
+export class CustomerIdDto {
+    @ApiProperty({
+        type: String
+    })
+    customer: string;
+}
+
+
+export class CustomerUserRequestDto extends IntersectionType(
+    CustomerIdDto,
+    UserRequestDto,
+) {}
 

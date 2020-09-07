@@ -9,6 +9,7 @@ export const LOGOUT_SUCCESS: string = 'You have been logged out successfully';
 
 
 export const INVALID_PARAMETER: string = 'Please choose valid parameter';
+export const AUTHORIZATION_ERROR: string = 'You are not authorized to access this functionality';
 
 export const PROFILE_IS_NOT_APPROVED: string = 'Your profile is not approved yet';
 export const PROFILE_SUSPENDED: string = 'Your profile has been suspended';

@@ -63,10 +63,10 @@ export class AuthenticationService {
     }
 
 
-    public loginUser(user: any): {access_token: string} {
+    public loginUser(user: any, role: 'customer' | 'admin' | 'organisation'): {access_token: string} {
 
         return {
-            access_token: this.jwtService.sign({ username: user.email, sub: user._id })
+            access_token: this.jwtService.sign({ username: user.email, sub: user._id, role })
         };
     }
 

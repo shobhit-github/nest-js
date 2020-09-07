@@ -57,3 +57,22 @@ export class UpdateForgetPasswordFlag {
     })
     public readonly idPasswordForgot: boolean;
 }
+
+
+export class UpdateContentDto {
+
+
+    @ApiProperty({
+        required: true,
+        type: Object
+    })
+    public readonly contentValue: any;
+}
+
+
+
+
+
+
+
+

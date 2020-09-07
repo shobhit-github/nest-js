@@ -176,7 +176,7 @@ export class AuthenticationController {
                 return response.status(HttpStatus.UNAUTHORIZED).jsonp({status: false, message: <string>profileStatusMessage})
             }
 
-            const jwtTokenObject: IJwtToken = this.authenticationService.loginUser(userObject);
+            const jwtTokenObject: IJwtToken = this.authenticationService.loginUser(userObject, requestParameter.for);
 
             await this.updateLoginStatus(requestParameter.for, userObject._id, true);
 

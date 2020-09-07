@@ -1,23 +1,29 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { IOrganisation } from "../interfaces/organisation.interface";
 import { NestMailerService } from "../../_sharedCollections/mailer/nest-mailer.service";
 import * as fromDto from "../dto";
 import { Organisation } from "../../_sharedCollections/dbSchemas/organisation.schema";
+import { PaymentService } from '../../customer/services/payment.service';
+import { IUserRequest } from '../../utility/interfaces/user-request.interface';
+import { Request as UserRequest } from '../../_sharedCollections/dbSchemas/request.schema';
+
+
 
 @Injectable()
 export class OrganisationService {
 
-
     constructor(@InjectModel(Organisation.name) private readonly organisationModel: Model<IOrganisation>,
-                private nestMailerService: NestMailerService) {
+                @InjectModel(UserRequest.name) private readonly requestModel: Model<IUserRequest>,
+                private readonly nestMailerService: NestMailerService,
+                @Inject(forwardRef(() => PaymentService)) private paymentService: PaymentService) {
     }
 
 
     // update verification code for organisation
     public updateVerificationCode = async (organisationId: string, code: number): Promise<IOrganisation> =>
-        await this.organisationModel.findByIdAndUpdate(organisationId, <fromDto.UpdateVerificationCodeDto>{ verificationCode: code });
+        await this.organisationModel.findByIdAndUpdate(organisationId, <fromDto.UpdateVerificationCodeDto>{ verificationCode: code }, {projection: {password: 0}});
 
 
     // fetch all organisations
@@ -45,37 +51,35 @@ export class OrganisationService {
 
     // Edit organisation details
     public updateOrganisationById = async (organisationID: string, updateOrganisation: any): Promise<IOrganisation> =>
-        await this.organisationModel
-            .findByIdAndUpdate(organisationID, updateOrganisation, { new: true });
+        await this.organisationModel.findByIdAndUpdate(organisationID, updateOrganisation, { new: true, projection: { password: 0} });
 
 
     // Edit organisation details
     public updateOrganisation = async (condition: any, updateOrganisation: any): Promise<IOrganisation> =>
-        await this.organisationModel
-            .findOneAndUpdate(condition, updateOrganisation, { new: true });
+        await this.organisationModel.findOneAndUpdate(condition, updateOrganisation, { new: true, projection: {password: 0} });
 
 
     // Delete a organisation
     public deleteOrganisation = async (organisationID: string): Promise<any> => await this.organisationModel.findByIdAndRemove(organisationID);
 
 
-    // send verification code to organisation email
-    public sendEmailVerification = async (organisation: IOrganisation, verificationCode: number): Promise<any> => {
+    // send organisation credentials
+    public async sendCredentials(userInfo: IOrganisation, generatedPassword: string) {
 
-        return await this.nestMailerService.sendEmailVerificationCode(
-            {to: organisation.email, context: {organisationName: organisation.organisationName, verificationCode } }
-        )
-    };
-
-
-    // re-send verification code to organisation email
-    public resendVerificationCode = async (organisation: IOrganisation, verificationCode: number): Promise<any> => (
-        await this.nestMailerService.reSendCode({to: organisation.email, context: {verificationCode } })
-    );
+        return this.nestMailerService.sendOrganisationCredentials({ to: userInfo.email, context: {generatedPassword, organisationName: userInfo.organisationName} })
+    }
 
 
     // get Organisation for recommendation list
     public getOrganisationByInterests = async (ids: string[]): Promise<any> => (
         await this.organisationModel.find({interests: { $in: ids} }, {password: 0}).exec()
     );
+
+
+    public createAccountHolder = async (payload: any): Promise<any> => this.paymentService.createAccountHolder(payload);
+
+
+    // add new user request
+    public submitUserRequest = async (payload: fromDto.OrganisationUserRequestDto): Promise<IUserRequest> => ( await new this.requestModel( payload ) ).save();
+
 }

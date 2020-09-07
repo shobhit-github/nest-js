@@ -7,10 +7,11 @@ import {parallel} from 'async';
 
 
 import * as text from '../constants/en';
+import * as swaggerDoc from '../constants/swagger';
 
 
 
-import { JwtAuthGuard } from 'src/auth/guard/jwt.guard';
+import { AdminAuthGuard } from 'src/auth/guard/admin.guard';
 
 import { CustomerService } from '../../customer/services/customer.service';
 import { OrganisationService } from '../../organisation/services/organisation.service';
@@ -47,9 +48,9 @@ export class DashboardController {
 
 
     // update admin detail
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(AdminAuthGuard)
     @ApiBearerAuth()
-    @ApiOperation({summary: 'This api will provide the all statistical data that will be shown to the admin dashboard'})
+    @ApiOperation({summary: swaggerDoc.Dashboard.summary })
     @ApiResponse({ status: 200 })
     @Get('dashboard')
     public async adminDashboard(@Res() response: Response): Promise<any> {

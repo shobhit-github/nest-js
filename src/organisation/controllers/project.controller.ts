@@ -1,15 +1,18 @@
 import {
-    Body, Controller, HttpException, HttpStatus, Post, Res, Put, Param, UseInterceptors, UploadedFiles, Get } from '@nestjs/common';
+    Body, Controller, HttpException, HttpStatus, Post, Res, Put, Param, UseInterceptors, UploadedFiles, Get, UseGuards,
+} from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags, ApiConsumes, ApiBearerAuth } from '@nestjs/swagger';
 import * as fromDto from '../dto';
 import { Response } from 'express';
 
 import * as text from '../constants/en';
+import * as swaggerDoc from '../constants/swagger';
 import * as fileOperations from '../helpers/fileUpload.helper';
 
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ProjectService } from '../services/project.service';
 import { IProject } from '../interfaces/project.interface';
+import { OrganisationAuthGuard } from '../../auth/guard/organisation.guard';
 
 
 @ApiTags('Organisation')
@@ -24,8 +27,9 @@ export class ProjectController {
 
     // add an project for an organisation
     @ApiBearerAuth()
+    @UseGuards(OrganisationAuthGuard)
     @ApiBody({ required: true, type: fromDto.CreateProjectDto })
-    @ApiOperation({ summary: 'Create a new project to get new donation for an organisation' })
+    @ApiOperation({ summary: swaggerDoc.CreateProject.summary })
     @ApiResponse({ status: 200 })
     @ApiParam({ required: true, name: 'id' })
     @Post('create/:id')
@@ -48,11 +52,12 @@ export class ProjectController {
 
     // upload project timeline pictures
     @ApiBearerAuth()
+    @UseGuards(OrganisationAuthGuard)
     @UseInterceptors(FilesInterceptor('pictures', 35, {storage: fileOperations.projectPictureDiskStorage, fileFilter: fileOperations.projectPictureFileFilter}))
     @ApiConsumes('multipart/form-data')
     @ApiBody({ required: true, type: fromDto.UpdateProjectPictureDto })
     @ApiParam({ required: true, name: 'id' })
-    @ApiOperation({ summary: 'This api will help to upload project timeline pictures of the organisation profile' })
+    @ApiOperation({ summary: swaggerDoc.UploadProjectPics.summary })
     @ApiResponse({ status: 200 })
     @Put('uploadProjectPictures/:id')
     public async uploadProjectPictures(@Res() response: Response, @Param() requestParameter: {id: string}, @UploadedFiles() files: any[]): Promise<any> {
