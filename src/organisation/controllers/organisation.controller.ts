@@ -14,7 +14,16 @@ import {
     UseGuards,
 } from '@nestjs/common';
 import { OrganisationService } from '../services/organisation.service';
-import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags, ApiConsumes, ApiBearerAuth } from '@nestjs/swagger';
+import {
+    ApiBody,
+    ApiOperation,
+    ApiParam,
+    ApiResponse,
+    ApiTags,
+    ApiConsumes,
+    ApiBearerAuth,
+    ApiExcludeEndpoint,
+} from '@nestjs/swagger';
 import * as fromDto from '../dto';
 import { Response } from 'express';
 
@@ -210,6 +219,7 @@ export class OrganisationController {
 
 
     // upload organisation logo
+    @ApiExcludeEndpoint(true)
     @ApiBearerAuth()
     @UseGuards(OrganisationAuthGuard)
     @ApiParam({ required: true, name: 'id' })

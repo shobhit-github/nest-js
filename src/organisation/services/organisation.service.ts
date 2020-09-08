@@ -1,6 +1,6 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
+import { Model, PaginateModel, PaginateResult } from "mongoose";
 import { IOrganisation } from "../interfaces/organisation.interface";
 import { NestMailerService } from "../../_sharedCollections/mailer/nest-mailer.service";
 import * as fromDto from "../dto";
@@ -14,7 +14,7 @@ import { Request as UserRequest } from '../../_sharedCollections/dbSchemas/reque
 @Injectable()
 export class OrganisationService {
 
-    constructor(@InjectModel(Organisation.name) private readonly organisationModel: Model<IOrganisation>,
+    constructor(@InjectModel(Organisation.name) private readonly organisationModel: PaginateModel<IOrganisation>,
                 @InjectModel(UserRequest.name) private readonly requestModel: Model<IUserRequest>,
                 private readonly nestMailerService: NestMailerService,
                 @Inject(forwardRef(() => PaymentService)) private paymentService: PaymentService) {
@@ -29,6 +29,11 @@ export class OrganisationService {
     // fetch all organisations
     public getAllOrganisation = async (): Promise<IOrganisation[]> => await this.organisationModel
         .find(null, { password: 0 }).exec();
+
+
+    // fetch all organisations
+    public getAllOrganisationIds = async (condition): Promise<IOrganisation[]> => await this.organisationModel
+        .find(condition, { _id: 1 }).exec();
 
 
     // Get a single organisation
@@ -71,8 +76,8 @@ export class OrganisationService {
 
 
     // get Organisation for recommendation list
-    public getOrganisationByInterests = async (ids: string[]): Promise<any> => (
-        await this.organisationModel.find({interests: { $in: ids} }, {password: 0}).exec()
+    public getOrganisationByInterests = async (ids: string[], paging: any): Promise<PaginateResult<IOrganisation>> => (
+        await this.organisationModel.paginate({interests: { $in: ids} }, {...paging})
     );
 
 

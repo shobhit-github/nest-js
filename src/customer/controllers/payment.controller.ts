@@ -11,7 +11,15 @@ import {
     Res,
     UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+    ApiBearerAuth,
+    ApiBody,
+    ApiExcludeEndpoint,
+    ApiOperation,
+    ApiParam,
+    ApiResponse,
+    ApiTags,
+} from '@nestjs/swagger';
 import { Response } from 'express';
 
 import * as _ from 'lodash';
@@ -54,7 +62,7 @@ export class PaymentController {
 
 
     // upload organisation logo
-    // @ApiExcludeEndpoint(true)
+    @ApiExcludeEndpoint(true)
     @ApiBearerAuth()
     @UseGuards(CustomerAuthGuard)
     @ApiParam({ required: true, name: 'code' })
@@ -81,7 +89,7 @@ export class PaymentController {
 
 
     // upload organisation logo
-    // @ApiExcludeEndpoint(true)
+    @ApiExcludeEndpoint(true)
     @ApiBearerAuth()
     @UseGuards(CustomerAuthGuard)
     @ApiParam({ required: true, name: 'type', enum: ['one-time', 'recurring'] })

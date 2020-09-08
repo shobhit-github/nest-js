@@ -59,6 +59,20 @@ export const RecommendationList: ISwaggerDoc = {
 }
 
 
+export const RecommendedOrganisation: ISwaggerDoc = {
+
+    summary: 'This api help to retrieve to get the recommended organisations based on customer interests',
+    bodyDescription: null
+}
+
+
+export const RecommendedProject: ISwaggerDoc = {
+
+    summary: 'This api help to retrieve to get the recommended projects based on customer interests',
+    bodyDescription: null
+}
+
+
 export const LikeFavour: ISwaggerDoc = {
 
     summary: 'This api will help to make like, unlike, bookmark and unbooked to a particular project by the customer',

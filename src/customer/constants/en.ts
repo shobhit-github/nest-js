@@ -16,7 +16,14 @@ export const LIST_CUSTOMER_FAILED: string = 'API failed due to an internal error
 
 export const PROJECT_LIKE_SUCCESS: string = 'Project has been %s successfully';
 export const PROJECT_LIKE_FAILED: string = 'Project %s operation failed due to an internal error';
+export const RECOMMENDATION_SUCCESS: string = 'Organisation and projects feted based on your interests';
 export const UNKNOWN_REQUEST: string = 'Unknown request received'
+
+export const NO_INTEREST_BASED_ORGANISATION: string = 'Organisation not available according to your interest';
+export const INTEREST_BASED_ORGANISATION_RETRIEVED: string = 'Organisation has been retrieved according to your interest';
+
+export const NO_INTEREST_BASED_PROJECT: string = 'Project not available according to your interest';
+export const INTEREST_BASED_PROJECT_RETRIEVED: string = 'Project has been retrieved according to your interest';
 
 export const VERIFICATION_CODE_CONFIRM_SUCCESS: string = 'Verification code has been confirmed successfully';
 export const INVALID_VERIFICATION_CODE: string = 'You entered invalid verification code';

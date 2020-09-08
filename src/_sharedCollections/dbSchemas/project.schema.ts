@@ -3,10 +3,12 @@
 
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
-
+import * as mongoosePaginate from "mongoose-paginate-v2";
+import * as aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 
 import { defaultProjectStatus, ProjectStatus } from './models/projectStatus-model';
 import { Organisation } from './organisation.schema';
+
 
 
 @Schema()
@@ -71,4 +73,4 @@ export class Project extends Document {
 
 }
 
-export const ProjectSchema = SchemaFactory.createForClass(Project);
+export const ProjectSchema = SchemaFactory.createForClass(Project) .plugin(mongoosePaginate) .plugin(aggregatePaginate)

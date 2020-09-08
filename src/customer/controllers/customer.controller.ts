@@ -76,6 +76,45 @@ export class CustomerController {
     }
 
 
+    private interestBasedOrganisations = async (interests: string[], paging: any): Promise<any> => {
+
+        try {
+
+            const organisationProfileList: PaginateResult<IOrganisation> = await this.organisationService.getOrganisationByInterests(interests, paging);
+
+            if ( ! organisationProfileList.docs.length ) {
+                return { status: true, message: text.NO_INTEREST_BASED_ORGANISATION, response: organisationProfileList };
+            }
+
+            return { status: true, message: text.INTEREST_BASED_ORGANISATION_RETRIEVED, response: organisationProfileList };
+
+        } catch (e) {
+            this.handleErrorLogs(e);
+            throw new HttpException(text.INTERNAL_SERVER_ERROR, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
+
+
+    private interestBasedProjects = async (interests: string[], paging: any): Promise<any> => {
+
+        try {
+
+            const projectProfileList: PaginateResult<IProject> = await this.projectService.getProjectsByInterest(interests, paging);
+
+            if ( ! projectProfileList.docs.length ) {
+                return { status: true, message: text.NO_INTEREST_BASED_PROJECT, response: projectProfileList };
+            }
+
+            return { status: true, message: text.INTEREST_BASED_PROJECT_RETRIEVED, response: projectProfileList };
+
+        } catch (e) {
+            this.handleErrorLogs(e);
+            throw new HttpException(text.INTERNAL_SERVER_ERROR, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
+
 
     // add a customer
     @ApiBody({required: true, type: fromDto.CreateCustomerDto})
@@ -158,8 +197,6 @@ export class CustomerController {
         }
 
     }
-
-
 
 
 
@@ -282,22 +319,73 @@ export class CustomerController {
     @Get('getRecommendations/:id')
     public async getRecommendations(@Param() requestParameter: {id: string}, @Res() response: Response): Promise<any> {
 
-        const arrayOfIds: string[] = [];
+        try {
+
+            const { interests, projectsLiked: likedProjects, favouriteProjects }: ICustomer = ( await this.customerService.populateCustomer (requestParameter.id) );
+
+            console.log(interests)
+            const { response: recommendedOrganisations }: {status: boolean, message: string, response: PaginateResult<IOrganisation>} = (
+                await this.interestBasedOrganisations(interests, {})
+            );
+
+            const { response: recommendedProjects }: {status: boolean, message: string, response: PaginateResult<IProject>} = (
+                await this.interestBasedProjects(interests, {})
+            );
+
+            const result = {likedProjects, favouriteProjects, recommendedProjects, recommendedOrganisations};
+
+            return response.status(HttpStatus.OK)
+                .jsonp({status: true, message: text.RECOMMENDATION_SUCCESS, result})
+
+        } catch (e) {
+            this.handleErrorLogs(e);
+            throw new HttpException(text.INTERNAL_SERVER_ERROR, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+
+    // get customer list by pagination
+    @ApiBearerAuth()
+    @UseGuards(CustomerAuthGuard)
+    @ApiOperation({summary: swaggerDoc.RecommendedOrganisation.summary})
+    @ApiQuery({name: 'query', type: Object})
+    @ApiResponse({ status: 200 })
+    @ApiParam({name: 'id', required: true})
+    @Get('recommendedOrganisation/:id')
+    public async getRecommendedOrganisation(@Param() requestParameter: {id: string}, @Res() response: Response, @Query() queryReq: any): Promise<any> {
 
         try {
 
-            const customerProfile: ICustomer = ( await this.customerService.populateCustomer (requestParameter.id) )
-            const organisationProfileList: IOrganisation[] = await this.organisationService.getOrganisationByInterests(customerProfile.interests);
+            const customerProfile: ICustomer = ( await this.customerService.getCustomerById (requestParameter.id) )
 
-            organisationProfileList.forEach( value => arrayOfIds.push(value._id) );
-            const projectDetail: IProject[] = ( await this.projectService.getAllProjects({organisation: {$in: arrayOfIds}}) );
+            const organisationResponse = await this.interestBasedOrganisations(customerProfile.interests, queryReq);
+            return response.status(HttpStatus.OK) .jsonp(organisationResponse )
+
+        } catch (e) {
+            this.handleErrorLogs(e);
+            throw new HttpException(text.INTERNAL_SERVER_ERROR, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
 
-            const result = { allLikedProjects: customerProfile.projectsLiked, allFavouriteProjects: customerProfile.favouriteProjects,
-                organisationProfiles: organisationProfileList, interestBasedProjects: projectDetail };
 
-            response.status(HttpStatus.OK)
-                .jsonp({status: true, message: text.LIST_CUSTOMER_SUCCESS, response: result})
+    // get customer list by pagination
+    @ApiBearerAuth()
+    @UseGuards(CustomerAuthGuard)
+    @ApiOperation({summary: swaggerDoc.RecommendationList.summary})
+    @ApiResponse({ status: 200 })
+    @ApiQuery({name: 'query', type: Object})
+    @ApiParam({name: 'id', required: true})
+    @Get('recommendedProject/:id')
+    public async getRecommendedProjects(@Param() requestParameter: {id: string}, @Res() response: Response, @Query() queryReq: any): Promise<any> {
+
+        try {
+
+            const customerProfile: ICustomer = ( await this.customerService.getCustomerById (requestParameter.id) )
+
+            const projectResponse = await this.interestBasedProjects(customerProfile.interests, queryReq);
+            return response.status(HttpStatus.OK).jsonp( projectResponse )
 
         } catch (e) {
             this.handleErrorLogs(e);

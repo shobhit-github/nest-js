@@ -2,7 +2,7 @@
 
 
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types, Schema as MongooseSchema } from 'mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
 import * as mongoosePaginate from "mongoose-paginate-v2"
 
 import { defaultProfileStatusForCustomer, ProfileStatus } from "./models/profileStatus-model";
