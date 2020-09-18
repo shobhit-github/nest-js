@@ -13,6 +13,8 @@ import { IContent, IFaq } from '../interfaces/content.interface';
 import { Faq } from '../../_sharedCollections/dbSchemas/faq.schema';
 import { IUserRequest } from '../interfaces/user-request.interface';
 import { Request as UserRequest } from '../../_sharedCollections/dbSchemas/request.schema';
+import { NestMailerService } from '../../_sharedCollections/mailer/nest-mailer.service';
+import { ICustomer } from '../../customer/interfaces/customer.interface';
 
 
 @Injectable()
@@ -22,6 +24,7 @@ export class AdminService {
     constructor(@InjectModel(Admin.name) private readonly adminModel: Model<IAdmin>,
                 @InjectModel(Content.name) private readonly contentModel: Model<IContent>,
                 @InjectModel(UserRequest.name) private readonly userRequestModel: PaginateModel<IUserRequest>,
+                private readonly nestMailerService: NestMailerService,
                 @InjectModel(Faq.name) private readonly faqModel: Model<IFaq>) {
     }
 
@@ -91,7 +94,27 @@ export class AdminService {
     // retrieve user request by user specific
     public getUserRequests = async (condition: any, paging: fromAdminDto.DataListDto): Promise<PaginateResult<IUserRequest>> => (
         await this.userRequestModel.paginate(condition, paging)
+    )
+
+    // update user request
+    public updateUserRequestById = async (id: string, payload: fromAdminDto.ReplyUserRequestDto): Promise<IUserRequest> => (
+        await this.userRequestModel.findByIdAndUpdate(id, payload)
     );
+
+    // update multiple user request
+    public updateManyRequests = async (ids: string[], payload: any): Promise<IUserRequest> => (
+        await this.userRequestModel.updateMany({_id : {$in: ids} }, payload)
+    );
+
+    // update multiple user request
+    public deleteManyUserRequests = async (ids: string[]): Promise<any> => (
+        await this.userRequestModel.deleteMany({_id : {$in: ids} })
+    );
+
+    // send verification code to customer email
+    public sendRequestReply = async (email: string, message: string): Promise<any> => {
+        return await this.nestMailerService.sendUserRequestReply( { to: email, context: { message } } );
+    };
 
 
 }

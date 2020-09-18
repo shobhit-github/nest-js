@@ -10,10 +10,11 @@ import { OrganisationModule } from '../organisation/organisation.module';
 import { ContentSchema, Content } from '../_sharedCollections/dbSchemas/content.schema';
 import { Faq, FaqSchema } from '../_sharedCollections/dbSchemas/faq.schema';
 import { RequestSchema, Request as UserRequest } from '../_sharedCollections/dbSchemas/request.schema';
+import { NestMailerService } from '../_sharedCollections/mailer/nest-mailer.service';
 
 @Module({
 
-    providers: [AdminService, AdminSocket],
+    providers: [AdminService, AdminSocket, NestMailerService],
     controllers: [AdminController, DashboardController],
     imports: [
         MongooseModule.forFeature([

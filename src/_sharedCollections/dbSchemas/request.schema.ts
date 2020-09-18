@@ -67,7 +67,16 @@ export class Request extends Document {
 
     @Prop({
         required: true,
-        type: String
+        type: String,
+        default: null
+    })
+    public readonly messageResponse: string;
+
+
+    @Prop({
+        required: true,
+        type: String,
+        default: 'OPEN'
     })
     public readonly requestStatus: 'OPEN' | 'CLOSED' | 'RESOLVED';
 

@@ -29,6 +29,24 @@ export class NestMailerService {
     };
 
 
+    public sendUserRequestReply = (mailOptions): Promise<any> => {
+
+        const subject: string = 'Givmo Support';
+        const from: string = 'Givmo <' + this.configService.get<string>('emailAddress.support') + '>';
+        const template: string = 'support';
+
+        try {
+
+            return this.mailerService.sendMail( { ...mailOptions, from, subject, template } );
+
+        } catch (e) {
+
+            return Promise.reject(e)
+        }
+
+    };
+
+
     public reSendCode = (mailOptions): Promise<any> => {
 
         const subject: string = 'Verification Code - Donation';

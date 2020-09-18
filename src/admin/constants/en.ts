@@ -40,3 +40,6 @@ export const FAQ_UPDATE_FAIL: string = 'FAQ is not updated due to an internal er
 
 export const USER_REQ_RETRIEVE_SUCCESS: string = 'Requests has been retrieved successfully';
 export const USER_REQ_RETRIEVE_FAIL: string = 'Request not fetched due to an internal error';
+
+export const QUERY_ANSWERED_SUCCESS: string = 'Reply has been sent to the user successfully';
+export const QUERY_ANSWERED_FAIL: string = 'Reply has not sent to the user due to an internal error';

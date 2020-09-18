@@ -9,7 +9,7 @@ import * as _ from 'lodash';
 import * as fromAdminDto from '../dto';
 import * as text from '../constants/en';
 import * as swaggerDoc from '../constants/swagger';
-
+import * as moment from 'moment';
 
 import { AdminService } from "../services/admin.service";
 import { IAdmin } from "../interfaces/admin.interface";
@@ -30,6 +30,9 @@ import { IUserRequest } from '../interfaces/user-request.interface';
 
 
 
+const __dt = (dt: Date | string): string => moment(dt).format('MMM Do YYYY')
+
+
 @ApiTags('Administrator')
 @Controller('admin')
 export class AdminController {
@@ -43,7 +46,7 @@ export class AdminController {
 
 
 
-    private getDataListByIds = async (ids: string[], type: 'customer' | 'organisation' | 'project'): Promise<IOrganisation[] | IProject[] | ICustomer[]> => {
+    private getDataListByIds = async (ids: string[], type: 'customer' | 'organisation' | 'request' | 'project'): Promise<IOrganisation[] | IProject[] | ICustomer[]> => {
 
         switch (type) {
 
@@ -205,10 +208,10 @@ export class AdminController {
     @ApiBearerAuth()
     @ApiOperation({ summary: swaggerDoc.UpdateMultiple.summary })
     @ApiResponse({ status: 200 })
-    @ApiParam({ name: 'for', type: String, enum: ['customer', 'organisation', 'project'] })
+    @ApiParam({ name: 'for', type: String, enum: ['customer', 'organisation', 'project', 'request'] })
     @ApiBody({ type: fromDto.UpdateMultipleSets, required: true })
     @Patch('updateMultiSets/:for')
-    public async updateManyCustomer(@Res() response: Response, @Body() reqBody: fromDto.UpdateMultipleSets, @Param() reqParam: {for: 'customer' | 'organisation' | 'project'}): Promise<any> {
+    public async UpdateMultiple(@Res() response: Response, @Body() reqBody: fromDto.UpdateMultipleSets, @Param() reqParam: {for: 'customer' | 'organisation' | 'request' | 'project'}): Promise<any> {
 
         try {
 
@@ -228,8 +231,12 @@ export class AdminController {
                     isUpdated = await this.projectService.updateManyProjects(reqBody.ids, reqBody.fieldObject); break;
                 }
 
+                case 'request': {
+                    isUpdated = await this.adminService.updateManyRequests(reqBody.ids, reqBody.fieldObject); break;
+                }
+
                 default: {
-                    return new HttpException(text.DATA_LIST_FAILED, HttpStatus.INTERNAL_SERVER_ERROR);
+                    return new HttpException(text.CONTENT_UPDATED_FAILED, HttpStatus.INTERNAL_SERVER_ERROR);
                 }
             }
 
@@ -256,9 +263,9 @@ export class AdminController {
     @ApiOperation({ summary: swaggerDoc.DeleteMultiple.summary })
     @ApiResponse({ status: 200 })
     @ApiParam({name: 'id', required: true})
-    @ApiParam({ name: 'for', type: String, enum: ['customer', 'organisation', 'project'] })
+    @ApiParam({ name: 'for', type: String, enum: ['customer', 'organisation', 'project', 'request'] })
     @Delete(':for/delete/:id')
-    public async deleteMultipleCustomer(@Res() response: Response, @Param() reqParam: {id: string, for: 'customer' | 'organisation' | 'project'}): Promise<any> {
+    public async deleteMultiple(@Res() response: Response, @Param() reqParam: {id: string, for: 'customer' | 'request' | 'organisation' | 'project'}): Promise<any> {
 
         try {
 
@@ -277,6 +284,10 @@ export class AdminController {
 
                 case 'project': {
                     isDeleted = await this.projectService.deleteMultipleProjects(arrayOfIds); break;
+                }
+
+                case 'request': {
+                    isDeleted = await this.adminService.deleteManyUserRequests(arrayOfIds); break;
                 }
 
                 default: {
@@ -418,6 +429,44 @@ export class AdminController {
         } catch (e) {
             this.handleErrorLogs(e);
             throw new HttpException(text.USER_REQ_RETRIEVE_FAIL, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+
+    }
+
+
+
+
+    // update admin detail
+    @UseGuards(JwtAuthGuard, PermissionGuard)
+    @Permissions(UserType.ADMIN)
+    @ApiBearerAuth()
+    @ApiOperation({summary: swaggerDoc.UserRequest.summary})
+    @ApiResponse({ status: 200 })
+    @ApiBody({ type: fromAdminDto.ReplyUserRequestDto, required: true })
+    @ApiParam({name: 'id', required: true})
+    @Patch('replyUserRequest/:id')
+    public async sendReply(@Res() response: Response, @Param() reqParam: {id: string}, @Body() reqBody: fromAdminDto.ReplyUserRequestDto): Promise<any> {
+
+        try {
+
+            const { email, fullName, createdAt, subject, phone, requestStatus }: IUserRequest = await this.adminService.updateUserRequestById( reqParam.id, reqBody );
+            const replaceObj = { '{name}': fullName, '{email}': email, '{subject}': subject, '{phone}': phone, '{dateOfRequest}': __dt(createdAt) }
+
+            const actualMessage: string = reqBody.messageResponse.replace( new RegExp( Object.keys(replaceObj).join('|'), 'gi' ), matched => replaceObj[matched] )
+
+            const messageSetObj = await this.adminService.sendRequestReply( email, actualMessage)
+
+            if ( ! messageSetObj ) {
+                return response.status(HttpStatus.OK).jsonp({success: false, message: text.QUERY_ANSWERED_FAIL, response: null})
+            }
+
+            return response.status(HttpStatus.OK).jsonp({success: true, message: text.QUERY_ANSWERED_SUCCESS, response: { email, fullName, createdAt, subject, phone, requestStatus }})
+
+
+
+        } catch (e) {
+            this.handleErrorLogs(e);
+            throw new HttpException(text.QUERY_ANSWERED_FAIL, HttpStatus.INTERNAL_SERVER_ERROR)
         }
 
     }
