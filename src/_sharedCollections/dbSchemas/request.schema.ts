@@ -3,6 +3,8 @@
 
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
+import * as mongoosePaginate from "mongoose-paginate-v2";
+import * as aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 
 import { Customer } from './customer.schema';
 import { Organisation } from './organisation.schema';
@@ -63,6 +65,13 @@ export class Request extends Document {
     public readonly message: string;
 
 
+    @Prop({
+        required: true,
+        type: String
+    })
+    public readonly requestStatus: 'OPEN' | 'CLOSED' | 'RESOLVED';
+
+
 
 
     @Prop({
@@ -75,4 +84,4 @@ export class Request extends Document {
 
 }
 
-export const RequestSchema = SchemaFactory.createForClass(Request);
+export const RequestSchema = SchemaFactory.createForClass(Request) .plugin(mongoosePaginate) .plugin(aggregatePaginate);

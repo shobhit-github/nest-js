@@ -32,6 +32,12 @@ export const UpdateProfile: ISwaggerDoc = {
 }
 
 
+export const DataListing: ISwaggerDoc = {
+
+    summary: 'This api help to retrieve list of user profile, organisation profile, donation or project according to the parameter',
+    bodyDescription: null
+}
+
 
 export const AddNewFaq: ISwaggerDoc = {
 
@@ -40,6 +46,12 @@ export const AddNewFaq: ISwaggerDoc = {
 }
 
 
+export const UserRequest: ISwaggerDoc = {
+
+    summary: 'This api help to retrieve user request for outsider, customer and organisation',
+    bodyDescription: null
+}
+
 
 export const EditNewFaq: ISwaggerDoc = {
 
@@ -47,3 +59,17 @@ export const EditNewFaq: ISwaggerDoc = {
     bodyDescription: null
 }
 
+
+export const UpdateMultiple: ISwaggerDoc = {
+
+    summary: 'This api help to update multiple records as single request for customer, organisation',
+    bodyDescription: null
+}
+
+
+
+export const DeleteMultiple: ISwaggerDoc = {
+
+    summary: 'This api help to delete multiple profile of the customer, organisation and project in a single request',
+    bodyDescription: null
+}

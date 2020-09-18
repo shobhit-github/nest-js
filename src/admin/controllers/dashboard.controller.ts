@@ -1,7 +1,7 @@
 import {
     Controller, HttpException, HttpStatus, Res, Get, UseGuards
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {Response} from "express";
 import {parallel} from 'async';
 
@@ -11,10 +11,10 @@ import * as swaggerDoc from '../constants/swagger';
 
 
 
-import { AdminAuthGuard } from 'src/auth/guard/admin.guard';
 
 import { CustomerService } from '../../customer/services/customer.service';
 import { OrganisationService } from '../../organisation/services/organisation.service';
+import { PermissionGuard, Permissions, JwtAuthGuard } from 'src/auth/guard/permission.guard';
 
 
 
@@ -48,7 +48,8 @@ export class DashboardController {
 
 
     // update admin detail
-    @UseGuards(AdminAuthGuard)
+    @UseGuards(JwtAuthGuard, PermissionGuard)
+    @Permissions('admin')
     @ApiBearerAuth()
     @ApiOperation({summary: swaggerDoc.Dashboard.summary })
     @ApiResponse({ status: 200 })

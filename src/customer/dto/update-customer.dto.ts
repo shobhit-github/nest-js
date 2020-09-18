@@ -1,6 +1,6 @@
 
 
-import { ApiProperty, IntersectionType, OmitType } from '@nestjs/swagger';
+import { ApiProperty, IntersectionType, OmitType, PickType } from '@nestjs/swagger';
 import { ProfileStatus } from '../interfaces/customer.interface';
 import { CreateCustomerDto } from './create-customer.dto'
 import {UserRequestDto} from '../../utility/dto';
@@ -71,3 +71,15 @@ export class CustomerUserRequestDto extends IntersectionType(
     UserRequestDto,
 ) {}
 
+export class UpdateMultipleSets {
+
+    @ApiProperty({
+        type: Array
+    })
+    ids: string[]
+
+    @ApiProperty({
+        type: Object
+    })
+    fieldObject: any
+}

@@ -3,7 +3,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 
 
-export class ListCustomerDto {
+export class DataListDto {
 
 
     @ApiProperty({
@@ -14,15 +14,20 @@ export class ListCustomerDto {
 
 
     @ApiProperty({
-        required: true,
         type: Number,
         example: 1
     })
-    public readonly page: number;
+    public readonly page?: number;
 
 
     @ApiProperty({
-        required: true,
+        type: Number,
+        example: 0
+    })
+    public readonly offset?: number;
+
+
+    @ApiProperty({
         type: Number,
         example: 10
     })

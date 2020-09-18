@@ -32,3 +32,6 @@ export const FILE_ACCEPT_IMAGE: string = 'Only image related file can be accepta
 export const REQUEST_SUBMIT_SUCCESS: string = 'Your request has been submitted successfully';
 export const REQUEST_SUBMIT_FAILED: string = 'Your request not submitted due to an internal error';
 
+export const ORG_PROFILE_SUCCESS: string = 'Your profile has been retrieved successfully';
+export const ORG_PROFILE_FAILED: string = 'Your profile not retrieved due to an internal error';
+

@@ -180,7 +180,7 @@ export class AuthenticationController {
 
             await this.updateLoginStatus(requestParameter.for, userObject._id, true);
 
-            return response.status(HttpStatus.OK).jsonp({status: true, message: text.AUTHENTICATION_SUCCESS, jwtTokenObject})
+            return response.status(HttpStatus.OK).jsonp({status: true, message: text.AUTHENTICATION_SUCCESS, jwtTokenObject, _id: userObject._id})
 
         } catch (e) {
 

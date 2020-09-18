@@ -12,6 +12,7 @@ export interface IUserRequest extends Document {
     readonly phone?: string;
     readonly subject: string;
     readonly message: string;
+    readonly requestStatus: 'OPEN' | 'CLOSED' | 'RESOLVED';
     readonly createdAt: Date | string
 }
 

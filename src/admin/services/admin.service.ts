@@ -2,7 +2,7 @@
 
 
 import { Injectable } from '@nestjs/common';
-import { Model, PaginateModel } from 'mongoose';
+import { Model, PaginateModel, PaginateResult } from 'mongoose';
 import { InjectModel } from "@nestjs/mongoose";
 import { IAdmin } from '../interfaces/admin.interface';
 import { Admin } from '../../_sharedCollections/dbSchemas/admin.schema';
@@ -37,7 +37,11 @@ export class AdminService {
 
 
     // Get a single admin by object field
-    public getSingleAdmin = async (object: any): Promise<IAdmin | any> => await this.adminModel.findOne(object).exec();
+    public getSingleAdmin = async (object: any): Promise<IAdmin | any> => await this.adminModel.findOne(object, {password: 0}).exec();
+
+
+    // Get a single admin by object field
+    public getSingleAdminForAuth = async (object: any): Promise<IAdmin | any> => await this.adminModel.findOne(object).exec();
 
 
     // Get a count of admin by object field
@@ -82,6 +86,12 @@ export class AdminService {
 
     // edit faqs
     public editFaq = async (id: string, payload: any): Promise<IFaq> => this.faqModel.findByIdAndUpdate(id, payload);
+
+
+    // retrieve user request by user specific
+    public getUserRequests = async (condition: any, paging: fromAdminDto.DataListDto): Promise<PaginateResult<IUserRequest>> => (
+        await this.userRequestModel.paginate(condition, paging)
+    );
 
 
 }

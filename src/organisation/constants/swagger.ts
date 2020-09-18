@@ -58,4 +58,10 @@ export const UserRequest: ISwaggerDoc = {
     bodyDescription: null
 }
 
+export const OrgProfile: ISwaggerDoc = {
+
+    summary: 'This api help retrieve the simple organisation profile by id',
+    bodyDescription: null
+}
+
 

@@ -12,7 +12,7 @@ import * as fileOperations from '../helpers/fileUpload.helper';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ProjectService } from '../services/project.service';
 import { IProject } from '../interfaces/project.interface';
-import { OrganisationAuthGuard } from '../../auth/guard/organisation.guard';
+import { PermissionGuard, Permissions, JwtAuthGuard } from 'src/auth/guard/permission.guard';
 
 
 @ApiTags('Organisation')
@@ -27,7 +27,8 @@ export class ProjectController {
 
     // add an project for an organisation
     @ApiBearerAuth()
-    @UseGuards(OrganisationAuthGuard)
+    @UseGuards(JwtAuthGuard, PermissionGuard)
+    @Permissions('organisation')
     @ApiBody({ required: true, type: fromDto.CreateProjectDto })
     @ApiOperation({ summary: swaggerDoc.CreateProject.summary })
     @ApiResponse({ status: 200 })
@@ -52,7 +53,8 @@ export class ProjectController {
 
     // upload project timeline pictures
     @ApiBearerAuth()
-    @UseGuards(OrganisationAuthGuard)
+    @UseGuards(JwtAuthGuard, PermissionGuard)
+    @Permissions('organisation')
     @UseInterceptors(FilesInterceptor('pictures', 35, {storage: fileOperations.projectPictureDiskStorage, fileFilter: fileOperations.projectPictureFileFilter}))
     @ApiConsumes('multipart/form-data')
     @ApiBody({ required: true, type: fromDto.UpdateProjectPictureDto })

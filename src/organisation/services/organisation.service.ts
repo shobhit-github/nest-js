@@ -4,10 +4,12 @@ import { Model, PaginateModel, PaginateResult } from "mongoose";
 import { IOrganisation } from "../interfaces/organisation.interface";
 import { NestMailerService } from "../../_sharedCollections/mailer/nest-mailer.service";
 import * as fromDto from "../dto";
+import * as fromAdminDto from 'src/admin/dto';
 import { Organisation } from "../../_sharedCollections/dbSchemas/organisation.schema";
 import { PaymentService } from '../../customer/services/payment.service';
 import { IUserRequest } from '../../utility/interfaces/user-request.interface';
 import { Request as UserRequest } from '../../_sharedCollections/dbSchemas/request.schema';
+import { ICustomer } from '../../customer/interfaces/customer.interface';
 
 
 
@@ -27,13 +29,12 @@ export class OrganisationService {
 
 
     // fetch all organisations
-    public getAllOrganisation = async (): Promise<IOrganisation[]> => await this.organisationModel
-        .find(null, { password: 0 }).exec();
+    public getAllOrganisation = async (conditions: any, paging: fromAdminDto.DataListDto): Promise<PaginateResult<IOrganisation>> => (
+        await this.organisationModel.paginate(conditions, { ...paging, select: { password: 0 } })
+    );
 
 
-    // fetch all organisations
-    public getAllOrganisationIds = async (condition): Promise<IOrganisation[]> => await this.organisationModel
-        .find(condition, { _id: 1 }).exec();
+    public getMultipleOrganisationsByIds = async (ids: string[]): Promise<IOrganisation[]> => (await this.organisationModel.find({ _id: { $in: ids } }));
 
 
     // Get a single organisation
@@ -42,7 +43,11 @@ export class OrganisationService {
 
 
     // Get a single organisation by object field
-    public getSingleOrganisation = async (object: any): Promise<IOrganisation | any> => await this.organisationModel.findOne(object).exec();
+    public getSingleOrganisation = async (object: any): Promise<IOrganisation | any> => await this.organisationModel.findOne(object, {password: 0}).exec();
+
+
+    // Get a single organisation by object field
+    public getSingleOrganisationForAuth = async (object: any): Promise<IOrganisation | any> => await this.organisationModel.findOne(object).exec();
 
 
     // Get a count of organisation by object field
@@ -64,8 +69,16 @@ export class OrganisationService {
         await this.organisationModel.findOneAndUpdate(condition, updateOrganisation, { new: true, projection: {password: 0} });
 
 
-    // Delete a organisation
-    public deleteOrganisation = async (organisationID: string): Promise<any> => await this.organisationModel.findByIdAndRemove(organisationID);
+    // update multiple records
+    public updateManyOrganisations = async (listOfIds: string[], payload): Promise<IOrganisation[]> => {
+        return this.organisationModel.updateMany({ _id: { $in: listOfIds } }, { $set: { ...payload } });
+    };
+
+
+    // delete multiple records
+    public deleteMultipleOrganisations = async (listOfIds: string[]): Promise<any> => {
+        return this.organisationModel.deleteMany({ _id: { $in: listOfIds } });
+    };
 
 
     // send organisation credentials

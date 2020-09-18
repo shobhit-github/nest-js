@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { forwardRef, Module } from '@nestjs/common';
 import { AuthenticationController } from "./controllers/authentication.controller";
 import { AuthenticationService } from "./services/authentication.service";
 import { JwtModule } from "@nestjs/jwt";
@@ -8,6 +8,7 @@ import { AdminModule } from "../admin/admin.module";
 import { OrganisationModule } from "../organisation/organisation.module";
 import { NestMailerService } from "../_sharedCollections/mailer/nest-mailer.service";
 import { JwtStrategy } from './guard/jwt.strategy';
+import { JwtAuthGuard, PermissionGuard } from './guard/permission.guard';
 
 
 export const jwtConstants = {
@@ -19,8 +20,7 @@ export const jwtConstants = {
 @Module({
     controllers: [AuthenticationController],
     providers: [
-        AuthenticationService,
-        NestMailerService
+        AuthenticationService, NestMailerService, PermissionGuard, JwtStrategy, JwtAuthGuard
     ],
     imports: [
         PassportModule,
@@ -29,10 +29,11 @@ export const jwtConstants = {
             signOptions: { expiresIn: jwtConstants.TOKEN_EXPIRE }
         }),
         JwtStrategy,
-        CustomerModule,
+        forwardRef( () => CustomerModule),
         AdminModule,
         OrganisationModule
-    ]
+    ],
+    exports: [AuthenticationService, PermissionGuard, JwtStrategy, JwtAuthGuard]
 })
 export class AuthModule {
 }

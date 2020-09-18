@@ -6,6 +6,8 @@ import { Project } from '../../_sharedCollections/dbSchemas/project.schema';
 import { IProject } from '../interfaces/project.interface';
 import { IOrganisation } from '../interfaces/organisation.interface';
 import { Organisation } from '../../_sharedCollections/dbSchemas/organisation.schema';
+import * as fromAdminDto from '../../admin/dto';
+import { ICustomer } from '../../customer/interfaces/customer.interface';
 
 
 
@@ -21,7 +23,7 @@ export class ProjectService implements OnModuleInit {
     }
 
 
-    onModuleInit(): any {
+    onModuleInit(): void {
 
         this.projectCollectionName = this.projectModel.collection.collectionName;
         this.organisationCollectionName = this.organisationModel.collection.collectionName;
@@ -29,7 +31,8 @@ export class ProjectService implements OnModuleInit {
 
 
     private aggregateInterestBasedProject = (ids: string[]) => {
-        return this.projectModel.aggregate().lookup( { from: this.organisationCollectionName, localField: 'organisation', foreignField: '_id', as: 'organisation' } ).match ( { 'organisation.interests': { $in: ids } } ).project({organisation: 0})
+        return this.projectModel.aggregate()
+            .lookup( { from: this.organisationCollectionName, localField: 'organisation', foreignField: '_id', as: 'organisation' } ).match ( { 'organisation.interests': { $in: ids } } ).project({organisation: 0})
     }
 
     // post a new project
@@ -38,6 +41,24 @@ export class ProjectService implements OnModuleInit {
 
     // get projects by query
     public getProjects = async (condition: any): Promise<IProject> => (await this.projectModel.find(condition));
+
+
+    // get projects by query
+    public getAllProjects = async (conditions: any, paging: fromAdminDto.DataListDto): Promise<PaginateResult<IProject>> => (
+        await this.projectModel.paginate(conditions, { ...paging })
+    );
+
+
+    // update multiple records
+    public updateManyProjects = async (listOfIds: string[], payload): Promise<IOrganisation[]> => {
+        return this.projectModel.updateMany({ _id: { $in: listOfIds } }, { $set: { ...payload } });
+    };
+
+
+    // delete multiple records
+    public deleteMultipleProjects = async (listOfIds: string[]): Promise<any> => {
+        return this.projectModel.deleteMany({ _id: { $in: listOfIds } });
+    };
 
 
     // Edit project details
@@ -56,6 +77,10 @@ export class ProjectService implements OnModuleInit {
     public getProjectsByInterest = async (ids: string[], paging: any): Promise<PaginateResult<IProject>> => (
             await this.projectModel.aggregatePaginate( this.aggregateInterestBasedProject(ids), {...paging} )
     );
+
+
+    public getMultipleProjectsByIds = async (ids: string[]): Promise<IProject[]> => (await this.projectModel.find({ _id: { $in: ids } }));
+
 
 }
 

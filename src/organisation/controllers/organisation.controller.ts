@@ -1,28 +1,9 @@
 import {
-    Body,
-    Controller,
-    HttpException,
-    HttpStatus,
-    Post,
-    Res,
-    Put,
-    Param,
-    UseInterceptors,
-    UploadedFile,
-    UploadedFiles,
-    Get,
-    UseGuards,
+    Body, Controller, HttpException, HttpStatus, Post, Res, Put, Param, UseInterceptors, UploadedFile, UploadedFiles, Get, UseGuards
 } from '@nestjs/common';
 import { OrganisationService } from '../services/organisation.service';
 import {
-    ApiBody,
-    ApiOperation,
-    ApiParam,
-    ApiResponse,
-    ApiTags,
-    ApiConsumes,
-    ApiBearerAuth,
-    ApiExcludeEndpoint,
+    ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags, ApiConsumes, ApiBearerAuth, ApiExcludeEndpoint
 } from '@nestjs/swagger';
 import * as fromDto from '../dto';
 import { Response } from 'express';
@@ -31,6 +12,7 @@ import * as fileSystem from 'fs';
 import * as _ from 'lodash';
 import * as text from '../constants/en';
 import * as swaggerDoc from '../constants/swagger';
+import { UserType } from '../../auth/interfaces/authUtils';
 
 import * as fileOperations from '../helpers/fileUpload.helper';
 import { IOrganisation } from '../interfaces/organisation.interface';
@@ -38,8 +20,7 @@ import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import * as utils from '../../_sharedCollections/helpers/utils';
 import * as bCrypt from 'bcrypt';
 import { IUserRequest } from '../../utility/interfaces/user-request.interface';
-import { CustomerAuthGuard } from '../../auth/guard/customer.guard';
-import { OrganisationAuthGuard } from '../../auth/guard/organisation.guard';
+import { PermissionGuard, Permissions, JwtAuthGuard  } from '../../auth/guard/permission.guard';
 
 
 
@@ -87,7 +68,8 @@ export class OrganisationController {
 
     // add an organisation
     @ApiBearerAuth()
-    @UseGuards(OrganisationAuthGuard)
+    @UseGuards(JwtAuthGuard, PermissionGuard)
+    @Permissions(UserType.ORGANISATION)
     @ApiBody({ required: true, type: fromDto.CreateOrganisationDto })
     @ApiOperation({ summary: swaggerDoc.UpdateOrganisation.summary })
     @ApiParam({name: 'id', required: true})
@@ -149,7 +131,8 @@ export class OrganisationController {
 
     // complete organisation profile
     @ApiBearerAuth()
-    @UseGuards(OrganisationAuthGuard)
+    @UseGuards(JwtAuthGuard, PermissionGuard)
+    @Permissions(UserType.ORGANISATION)
     @UseInterceptors(FilesInterceptor('pictures', 20, {storage: fileOperations.pictureDiskStorage, fileFilter: fileOperations.pictureFileFilter}))
     @ApiConsumes('multipart/form-data')
     @ApiBody({ required: true, type: fromDto.CreateOrganisationProfileDto })
@@ -184,7 +167,8 @@ export class OrganisationController {
 
     // upload organisation logo
     @ApiBearerAuth()
-    @UseGuards(OrganisationAuthGuard)
+    @UseGuards(JwtAuthGuard, PermissionGuard)
+    @Permissions(UserType.ORGANISATION)
     @ApiParam({ required: true, name: 'id' })
     @ApiOperation({ summary: swaggerDoc.UploadLogo.summary })
     @ApiResponse({ status: 200 })
@@ -221,7 +205,8 @@ export class OrganisationController {
     // upload organisation logo
     @ApiExcludeEndpoint(true)
     @ApiBearerAuth()
-    @UseGuards(OrganisationAuthGuard)
+    @UseGuards(JwtAuthGuard, PermissionGuard)
+    @Permissions(UserType.ORGANISATION)
     @ApiParam({ required: true, name: 'id' })
     @ApiOperation({ summary: 'Set up bank' })
     @ApiResponse({ status: 200 })
@@ -274,7 +259,8 @@ export class OrganisationController {
 
     // submit user request for customer
     @ApiBearerAuth()
-    @UseGuards(OrganisationAuthGuard)
+    @UseGuards(JwtAuthGuard, PermissionGuard)
+    @Permissions(UserType.ORGANISATION)
     @ApiOperation({summary: swaggerDoc.UserRequest.summary })
     @ApiResponse({ status: 200 })
     @ApiBody({type: fromDto.UserRequestDto, required: true})
@@ -295,6 +281,35 @@ export class OrganisationController {
         } catch (e) {
             this.handleErrorLogs(e);
             throw new HttpException(text.REQUEST_SUBMIT_FAILED, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+
+    }
+    
+
+
+    // get organisation profile
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, PermissionGuard)
+    @Permissions(UserType.ORGANISATION, UserType.ADMIN)
+    @ApiOperation({summary: swaggerDoc.OrgProfile.summary })
+    @ApiResponse({ status: 200 })
+    @ApiParam({ name: 'id', required: true })
+    @Get('profile/:id')
+    public async getOrganisationProfile(@Res() response: Response, @Param() reqParam: {id: string}): Promise<any> {
+
+        try {
+
+            const organisationProfile: IOrganisation = await this.organisationService.getOrganisationById(reqParam.id);
+
+            if ( ! organisationProfile ) {
+                return response.status(HttpStatus.BAD_REQUEST).jsonp({status: false, message: text.ORG_PROFILE_FAILED, response: null});
+            }
+
+            return response.status(HttpStatus.CREATED).jsonp({status: true, message: text.ORG_PROFILE_SUCCESS, response: organisationProfile});
+
+        } catch (e) {
+            this.handleErrorLogs(e);
+            throw new HttpException(text.ORG_PROFILE_FAILED, HttpStatus.INTERNAL_SERVER_ERROR)
         }
 
     }

@@ -12,6 +12,7 @@ import { ConfigModule } from '@nestjs/config';
 import { PaymentService } from './services/payment.service';
 import { Donation, DonationSchema } from '../_sharedCollections/dbSchemas/donation.schema';
 import { Request as UserRequest, RequestSchema } from '../_sharedCollections/dbSchemas/request.schema';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
     controllers: [CustomerController, PaymentController],
@@ -25,6 +26,7 @@ import { Request as UserRequest, RequestSchema } from '../_sharedCollections/dbS
         MulterModule.register(),
         ConfigModule,
         HttpModule,
+        forwardRef( () => AuthModule),
         forwardRef( () => OrganisationModule )
     ],
     exports: [CustomerService, CustomerSocket, PaymentService]

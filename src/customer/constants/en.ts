@@ -8,11 +8,17 @@ export const CUSTOMER_NOT_EXIST: string = 'This customer is not exist in our sys
 export const CUSTOMER_UPDATED_SUCCESS: string = 'Your profile has been updated successfully';
 export const CUSTOMER_UPDATED_FAIL: string = 'Profile not updated due to an internal error';
 
+export const CUSTOMER_DELETE_SUCCESS: string = 'Customer profile(s) has been deleted successfully';
+export const CUSTOMER_DELETE_FAIL: string = 'Customer profile(s) not deleted due to an internal error';
+
 export const VERIFICATION_CODE_RESENT_SUCCESS: string = 'Verification code has been sent successfully';
 export const VERIFICATION_CODE_RESENT_FAIL: string = 'Verification not sent due to internal server error';
 
 export const LIST_CUSTOMER_SUCCESS: string = 'All customers has been retrieved successfully';
 export const LIST_CUSTOMER_FAILED: string = 'API failed due to an internal error';
+
+export const CUSTOMER_PROFILE_SUCCESS: string = 'Customer profile has been retrieved successfully';
+export const CUSTOMER_PROFILE_FAILED: string = 'Customer profile API failed due to an internal error';
 
 export const PROJECT_LIKE_SUCCESS: string = 'Project has been %s successfully';
 export const PROJECT_LIKE_FAILED: string = 'Project %s operation failed due to an internal error';

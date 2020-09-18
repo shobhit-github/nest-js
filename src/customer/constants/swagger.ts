@@ -52,6 +52,13 @@ export const CustomerList: ISwaggerDoc = {
 }
 
 
+export const CustomerProfile: ISwaggerDoc = {
+
+    summary: 'This api will help to retrieve single customer profile by customer id',
+    bodyDescription: null
+}
+
+
 export const RecommendationList: ISwaggerDoc = {
 
     summary: 'Update and Retrieve project and organisation recommendation with the help of customer interests',
@@ -85,3 +92,4 @@ export const UserRequest: ISwaggerDoc = {
     summary: 'This api help to submit user request, complaint or query as per their need',
     bodyDescription: null
 }
+

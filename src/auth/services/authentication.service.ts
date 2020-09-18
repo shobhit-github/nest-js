@@ -31,7 +31,7 @@ export class AuthenticationService {
 
 
     public async validateOrganisation(username: string, pass: string): Promise<any> {
-        const userObject: any = await this.organisationService.getSingleOrganisation(username);
+        const userObject: any = await this.organisationService.getSingleOrganisationForAuth({email: username});
         const isPasswordCorrect: boolean = userObject ? await AuthenticationService.comparePassword(userObject.password, pass) : false;
 
         if (userObject && isPasswordCorrect) {
@@ -42,7 +42,7 @@ export class AuthenticationService {
 
 
     public async validateCustomer(username: string, pass: string): Promise<any> {
-        const userObject: any = await this.customerService.getSingleCustomer({email: username});
+        const userObject: any = await this.customerService.getSingleCustomerForAuth({email: username});
         const isPasswordCorrect: boolean = userObject ? await AuthenticationService.comparePassword(userObject.password, pass) : false;
 
         if (userObject && isPasswordCorrect) {
@@ -53,7 +53,7 @@ export class AuthenticationService {
 
 
     public async validateAdmin(username: string, pass: string): Promise<any> {
-        const userObject: any = await this.adminService.getSingleAdmin({username});
+        const userObject: any = await this.adminService.getSingleAdminForAuth({username});
         const isPasswordCorrect: boolean = userObject ? await AuthenticationService.comparePassword(userObject.password, pass) : false;
 
         if (userObject && isPasswordCorrect) {

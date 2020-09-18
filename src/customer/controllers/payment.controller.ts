@@ -33,7 +33,7 @@ import { CustomerSocket } from '../webSockets/customer-socket';
 import { OrganisationService } from '../../organisation/services/organisation.service';
 import { CustomerService } from '../services/customer.service';
 import { PaymentService } from '../services/payment.service';
-import { CustomerAuthGuard } from '../../auth/guard/customer.guard';
+import { PermissionGuard, Permissions, JwtAuthGuard } from 'src/auth/guard/permission.guard';
 
 
 
@@ -64,7 +64,8 @@ export class PaymentController {
     // upload organisation logo
     @ApiExcludeEndpoint(true)
     @ApiBearerAuth()
-    @UseGuards(CustomerAuthGuard)
+    @UseGuards(JwtAuthGuard, PermissionGuard)
+    @Permissions('customer')
     @ApiParam({ required: true, name: 'code' })
     @ApiOperation({ summary: swaggerVal.PaymentMethods.summary })
     @ApiResponse({ status: 200 })
@@ -91,7 +92,8 @@ export class PaymentController {
     // upload organisation logo
     @ApiExcludeEndpoint(true)
     @ApiBearerAuth()
-    @UseGuards(CustomerAuthGuard)
+    @UseGuards(JwtAuthGuard, PermissionGuard)
+    @Permissions('customer')
     @ApiParam({ required: true, name: 'type', enum: ['one-time', 'recurring'] })
     @ApiOperation({ summary: swaggerVal.OrganisationPayment.summary })
     @ApiResponse({ status: 200 })
