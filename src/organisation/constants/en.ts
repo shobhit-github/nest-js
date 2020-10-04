@@ -11,6 +11,12 @@ export const ORGANISATION_UPDATED_FAILED: string = 'Your organisation profile no
 export const PROJECT_CREATED_SUCCESS: string = 'Your project has been created successfully';
 export const PROJECT_CREATED_FAILED: string = 'Project not saved due to an internal error';
 
+export const PROJECT_LIST_SUCCESS: string = 'Your project list has been retrieved successfully';
+export const PROJECT_LIST_FAILED: string = 'Projects not retrieved due to an internal error';
+
+export const PROJECT_DETAIL_SUCCESS: string = 'Your project detail has been retrieved successfully';
+export const PROJECT_DETAIL_FAILED: string = 'Project detail not retrieved due to an internal error';
+
 export const VERIFICATION_CODE_RESENT_SUCCESS: string = 'Verification code has been sent successfully';
 export const VERIFICATION_CODE_RESENT_FAIL: string = 'Verification not sent due to internal server error';
 

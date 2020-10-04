@@ -18,7 +18,7 @@ export class PaymentService {
     private readonly MERCHANT_ACCOUNT_ID: string = null;
     private readonly ENVIRONMENT: 'DEV' | 'PROD' | 'STAGE';
 
-    private readonly defaultAuthHeader: {'X-API-key': string};
+    private readonly defaultAuthHeader: {'x-api-key': string};
 
 
     constructor(@InjectModel(Customer.name) private readonly customerModel: PaginateModel<ICustomer>,
@@ -30,7 +30,8 @@ export class PaymentService {
         this.MERCHANT_ACCOUNT_ID = this.configService.get<string>('paymentGateway.merchantAccountId');
         this.ENVIRONMENT = this.configService.get<'DEV' | 'PROD' | 'STAGE'>('environment');
 
-        this.defaultAuthHeader = {'X-API-key': this.configService.get<string>('paymentGateway.apiKey')};
+        // this.defaultAuthHeader = {'X-API-key': this.configService.get<string>('paymentGateway.apiKey')};
+        this.defaultAuthHeader = {'x-api-key': 'AQEnhmfuXNWTK0Qc+iSes0U7pOuORp8dWsVgq0kvvUTBHP/cxsjMxm+sEMFdWw2+5HzctViMSCJMYAc=-Odmt+B5QztbI5TW8vcpceNJu31XpnieBRpAh5fBiO9A=-wzMv%wKA}J5V&a5T'};
     }
 
 
@@ -70,7 +71,8 @@ export class PaymentService {
     public createAccountHolder = async (payload): Promise<any> => {
 
         // const payloadMix = {...payload, merchantAccount: this.MERCHANT_ACCOUNT_ID};
-        const headers = this.defaultAuthHeader;
+        const userCreds: string = Buffer.from('ws@Company.NAAccount076ECOM:Cj9]79Gb&4..X@L[5(m%?&^^*', 'utf8').toString('base64');
+        const headers = { ...this.defaultAuthHeader, Authorization: 'Basic ' + userCreds };
 
         return this.httpService.post( this.refinePaymentEndPoints(fromPaymentUrl.CREATE_ACCOUNT_HOLDER), payload, { headers } )
             .pipe( map( resPay => resPay ) ).toPromise()

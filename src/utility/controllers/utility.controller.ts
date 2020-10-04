@@ -1,7 +1,8 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Param, Post, Res } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, HttpException, HttpStatus, Param, Post, Res, Query } from '@nestjs/common';
+import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UtilityService } from '../services/utility.service';
 import { Response } from 'express';
+import {PaginateResult} from "mongoose"
 import * as text from '../constants/en';
 import * as swaggerDoc from '../constants/swagger';
 import * as _ from 'lodash';
@@ -31,7 +32,7 @@ export class UtilityController {
             const categoryArray: ICategory[] = await this.utilitiesService.getCategoryList({});
 
             if (categoryArray.length < 1) {
-                return response.status(HttpStatus.NO_CONTENT).jsonp({status: false, message: text.NO_INTEREST_DATA_FOUND, response: []});
+                return response.status(HttpStatus.OK).jsonp({status: false, message: text.NO_INTEREST_DATA_FOUND, response: []});
             }
 
             return response.status(HttpStatus.OK).jsonp({status: true, message: text.INTERESTS_LIST_RETRIEVE_SUCCESS, response: categoryArray});
@@ -48,7 +49,7 @@ export class UtilityController {
     @ApiOperation({summary: swaggerDoc.AppContent.summary })
     @ApiResponse({ status: 200 })
     @ApiParam({name: 'for', required: true, enum: ['all', 'privacy_policy', 'terms_condition', 'about']})
-    @Get('content/:for')
+    @Get('cms/:for')
     public async getContent(@Res() response: Response, @Param() reqParam: {for: string}): Promise<any> {
 
         const projectionFields: any = 'all' === reqParam.for ? {} : { [_.camelCase(reqParam.for)]: 1 };
@@ -58,7 +59,7 @@ export class UtilityController {
             const contentObject: IContent = await this.utilitiesService.getApplicationContent(projectionFields);
 
             if ( ! contentObject ) {
-                return response.status(HttpStatus.NO_CONTENT).jsonp({status: false, message: text.NO_CONTENT_FOUND, response: null});
+                return response.status(HttpStatus.OK).jsonp({status: false, message: text.NO_CONTENT_FOUND, response: null});
             }
 
             return response.status(HttpStatus.OK).jsonp({status: true, message: text.CONTENT_RETRIEVED_SUCCESS, response: contentObject});
@@ -76,17 +77,17 @@ export class UtilityController {
     @ApiOperation({summary: swaggerDoc.FaqContent.summary })
     @ApiResponse({ status: 200 })
     @ApiParam({name: 'for', required: true, enum: ['all', 'organisation', 'customer']})
+    @ApiQuery({name: 'query', type: Object})
     @Get('faqs/:for')
-    public async getFaqs(@Res() response: Response, @Param() reqParam: {for: string}): Promise<any> {
+    public async getFaqs(@Res() response: Response, @Param() reqParam: {for: string}, @Query() reqQuery: any): Promise<any> {
 
-        const conditionalQuery: any = 'all' === reqParam.for ? {} : { questionFor: reqParam.for.toUpperCase() };
+        const conditionalQuery: any = 'all' === reqParam.for ? {} : { questionFor: { $in: [ reqParam.for.toUpperCase(), 'ALL' ] } };
 
         try {
+            const faqList: PaginateResult<IFaq> = await this.utilitiesService.getApplicationFaqs(conditionalQuery, reqQuery);
 
-            const faqList: IFaq[] = await this.utilitiesService.getApplicationFaqs(conditionalQuery);
-
-            if ( ! faqList.length ) {
-                return response.status(HttpStatus.NO_CONTENT).jsonp({status: false, message: text.NO_FAQ_FOUND, response: null});
+            if ( ! faqList.docs.length ) {
+                return response.status(HttpStatus.OK).jsonp({status: false, message: text.NO_FAQ_FOUND, response: faqList});
             }
 
             return response.status(HttpStatus.OK).jsonp({status: true, message: text.FAQ_RETRIEVED_SUCCESS, response: faqList});

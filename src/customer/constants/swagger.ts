@@ -66,6 +66,13 @@ export const RecommendationList: ISwaggerDoc = {
 }
 
 
+export const SearchProject: ISwaggerDoc = {
+
+    summary: 'This api will help to search project or organisation both based on customer keywords  ',
+    bodyDescription: null
+}
+
+
 export const RecommendedOrganisation: ISwaggerDoc = {
 
     summary: 'This api help to retrieve to get the recommended organisations based on customer interests',

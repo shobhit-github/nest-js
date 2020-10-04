@@ -32,7 +32,26 @@ export class CreateProjectDto {
 
 
 
-export class UpdateProjectPictureDto {
+export class SaveProjectDto extends CreateProjectDto {
+
+
+    @ApiProperty({
+        type: String,
+        required: true
+    })
+    public readonly projectPictures: string[];
+
+
+    @ApiProperty({
+        type: 'array',
+        required: true
+    })
+    public readonly organisation: string;
+
+}
+
+
+export class CreateOrganisationProjectDto extends CreateProjectDto  {
 
 
     @ApiProperty({
@@ -43,9 +62,8 @@ export class UpdateProjectPictureDto {
         },
         type: 'array'
     })
-    public readonly pictures: any[];
+    public readonly projectPictures: any[];
 
 }
-
 
 

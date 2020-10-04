@@ -8,6 +8,8 @@ import { Customer } from 'src/_sharedCollections/dbSchemas/customer.schema';
 import { Request as UserRequest } from 'src/_sharedCollections/dbSchemas/request.schema';
 import { NestMailerService } from '../../_sharedCollections/mailer/nest-mailer.service';
 import { IUserRequest } from '../../utility/interfaces/user-request.interface';
+import { Categories } from '../../_sharedCollections/dbSchemas/categories.schema';
+import { ICategory } from '../../utility/interfaces/utilities.inteface';
 
 
 @Injectable()
@@ -16,6 +18,7 @@ export class CustomerService {
 
     constructor(@InjectModel(Customer.name) private readonly customerModel: PaginateModel<ICustomer>,
                 @InjectModel(UserRequest.name) private readonly requestModel: Model<IUserRequest>,
+                @InjectModel(Categories.name) private readonly categoryModel: Model<ICategory>,
                 private readonly nestMailerService: NestMailerService) {
 
     }
@@ -130,4 +133,8 @@ export class CustomerService {
     public submitUserRequest = async (payload: fromDto.CustomerUserRequestDto): Promise<IUserRequest> => (await new this.requestModel(payload)).save();
 
 
+    // search interests
+    public searchInterests = async (keyword: string): Promise<any> => (
+        await this.categoryModel.find( { category: new RegExp(keyword, 'i')}, {category: 0}).distinct('_id')
+    )
 }

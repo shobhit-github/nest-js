@@ -46,9 +46,9 @@ export const CreateProject: ISwaggerDoc = {
 }
 
 
-export const UploadProjectPics: ISwaggerDoc = {
+export const ListProject: ISwaggerDoc = {
 
-    summary: 'This api will help to upload project timeline pictures of the organisation profile',
+    summary: 'This api will help to get the list of project for particular organisation',
     bodyDescription: null
 }
 
@@ -61,6 +61,12 @@ export const UserRequest: ISwaggerDoc = {
 export const OrgProfile: ISwaggerDoc = {
 
     summary: 'This api help retrieve the simple organisation profile by id',
+    bodyDescription: null
+}
+
+export const ProjectDetail: ISwaggerDoc = {
+
+    summary: 'This api help retrieve the project detail by id',
     bodyDescription: null
 }
 

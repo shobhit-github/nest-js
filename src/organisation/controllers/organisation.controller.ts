@@ -1,9 +1,21 @@
 import {
-    Body, Controller, HttpException, HttpStatus, Post, Res, Put, Param, UseInterceptors, UploadedFile, UploadedFiles, Get, UseGuards
+    Body,
+    Controller,
+    HttpException,
+    HttpStatus,
+    Post,
+    Res,
+    Put,
+    Param,
+    UseInterceptors,
+    UploadedFile,
+    UploadedFiles,
+    Get,
+    UseGuards,
 } from '@nestjs/common';
 import { OrganisationService } from '../services/organisation.service';
 import {
-    ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags, ApiConsumes, ApiBearerAuth, ApiExcludeEndpoint
+    ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags, ApiConsumes, ApiBearerAuth, ApiExcludeEndpoint,
 } from '@nestjs/swagger';
 import * as fromDto from '../dto';
 import { Response } from 'express';
@@ -20,8 +32,7 @@ import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import * as utils from '../../_sharedCollections/helpers/utils';
 import * as bCrypt from 'bcrypt';
 import { IUserRequest } from '../../utility/interfaces/user-request.interface';
-import { PermissionGuard, Permissions, JwtAuthGuard  } from '../../auth/guard/permission.guard';
-
+import { PermissionGuard, Permissions, JwtAuthGuard } from '../../auth/guard/permission.guard';
 
 
 @ApiTags('Organisation')
@@ -56,7 +67,11 @@ export class OrganisationController {
 
 
             return response.status(HttpStatus.CREATED)
-                .jsonp( { status: true,message: text.ORGANISATION_CREATED_SUCCESS, response: _.omit(organisationObject, 'password')} );
+                .jsonp({
+                    status: true,
+                    message: text.ORGANISATION_CREATED_SUCCESS,
+                    response: _.omit(organisationObject, 'password'),
+                });
 
         } catch (e) {
             this.handleErrorLogs(e);
@@ -72,26 +87,30 @@ export class OrganisationController {
     @Permissions(UserType.ORGANISATION)
     @ApiBody({ required: true, type: fromDto.CreateOrganisationDto })
     @ApiOperation({ summary: swaggerDoc.UpdateOrganisation.summary })
-    @ApiParam({name: 'id', required: true})
+    @ApiParam({ name: 'id', required: true })
     @ApiResponse({ status: 200 })
     @Put('update/:id')
-    public async updateOrganisation(@Param() reqParam: {id: string}, @Body() organisationDto: fromDto.CreateOrganisationDto, @Res() response: Response): Promise<any> {
+    public async updateOrganisation(@Param() reqParam: { id: string }, @Body() organisationDto: fromDto.CreateOrganisationDto, @Res() response: Response): Promise<any> {
 
         try {
 
             const isValidOrg: boolean = !!(await this.organisationService.getOrganisationById(reqParam.id));
 
-            if ( ! isValidOrg ) {
+            if (!isValidOrg) {
 
                 return response.status(HttpStatus.BAD_REQUEST)
-                    .jsonp( { status: false, message: text.ORGANISATION_NOT_EXIST, response: null } );
+                    .jsonp({ status: false, message: text.ORGANISATION_NOT_EXIST, response: null });
             }
 
             const organisationObject: IOrganisation = (await this.organisationService.updateOrganisationById(reqParam.id, organisationDto));
 
 
             return response.status(HttpStatus.OK)
-                .jsonp( { status: true,message: text.ORGANISATION_UPDATED_SUCCESS, response: _.omit(organisationObject, ['password'])} );
+                .jsonp({
+                    status: true,
+                    message: text.ORGANISATION_UPDATED_SUCCESS,
+                    response: _.omit(organisationObject, ['password']),
+                });
 
         } catch (e) {
             this.handleErrorLogs(e);
@@ -114,12 +133,12 @@ export class OrganisationController {
             const hashedPassword: string = await bCrypt.hash(generatedPassword, 10);
 
 
-            const organisationProfile: IOrganisation = ( await this.organisationService.updateOrganisationById(requestParameter.id, {password: hashedPassword}) );
+            const organisationProfile: IOrganisation = (await this.organisationService.updateOrganisationById(requestParameter.id, { password: hashedPassword }));
             await this.organisationService.sendCredentials(organisationProfile, generatedPassword);
 
 
             return response.status(HttpStatus.CREATED)
-                .jsonp( { status: true, message: text.PROFILE_APPROVED_SUCCESS });
+                .jsonp({ status: true, message: text.PROFILE_APPROVED_SUCCESS });
 
         } catch (e) {
             this.handleErrorLogs(e);
@@ -133,24 +152,31 @@ export class OrganisationController {
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard, PermissionGuard)
     @Permissions(UserType.ORGANISATION)
-    @UseInterceptors(FilesInterceptor('pictures', 20, {storage: fileOperations.pictureDiskStorage, fileFilter: fileOperations.pictureFileFilter}))
+    @UseInterceptors(FilesInterceptor('pictures', 20, {
+        storage: fileOperations.pictureDiskStorage,
+        fileFilter: fileOperations.pictureFileFilter,
+    }))
     @ApiConsumes('multipart/form-data')
     @ApiBody({ required: true, type: fromDto.CreateOrganisationProfileDto })
     @ApiParam({ required: true, name: 'id' })
     @ApiOperation({ summary: swaggerDoc.CompleteProfile.summary })
     @ApiResponse({ status: 200 })
     @Put('completeProfile/:id')
-    public async completeOrganisationProfile(@Body() organisationDto: fromDto.CreateOrganisationProfileDto, @Res() response: Response, @Param() requestParameter: {id: string}, @UploadedFiles() files: any[]): Promise<any> {
+    public async completeOrganisationProfile(@Body() organisationDto: fromDto.CreateOrganisationProfileDto, @Res() response: Response, @Param() requestParameter: { id: string }, @UploadedFiles() files: any[]): Promise<any> {
 
         try {
 
-            const pictures: string[] = files.map( file => file.path);
-            const {description, organisationName} = organisationDto;
+            const pictures: string[] = files.map(file => file.path);
+            const { description, organisationName } = organisationDto;
             const interests: string[] = organisationDto.interests.split(',');
 
-            const updateOrganisationProfile: IOrganisation = await this.organisationService.updateOrganisationById(requestParameter.id, {pictures, interests, description, organisationName })
 
-            console.log(files)
+            const updateOrganisationProfile: IOrganisation = await this.organisationService.updateOrganisationById(requestParameter.id, {
+                pictures,
+                interests,
+                description,
+                organisationName,
+            });
 
             return response.status(HttpStatus.CREATED)
                 .jsonp(
@@ -172,9 +198,12 @@ export class OrganisationController {
     @ApiParam({ required: true, name: 'id' })
     @ApiOperation({ summary: swaggerDoc.UploadLogo.summary })
     @ApiResponse({ status: 200 })
-    @UseInterceptors(FileInterceptor('logo', {storage: fileOperations.logoDiskStorage, fileFilter: fileOperations.logoFileFilter}))
+    @UseInterceptors(FileInterceptor('logo', {
+        storage: fileOperations.logoDiskStorage,
+        fileFilter: fileOperations.logoFileFilter,
+    }))
     @ApiConsumes('multipart/form-data')
-    @ApiBody({type: fromDto.UpdateOrganisationLogoDto, required: true})
+    @ApiBody({ type: fromDto.UpdateOrganisationLogoDto, required: true })
     @Put('updateLogo/:id')
     public async updateLogo(@UploadedFile() file: any, @Res() response: Response, @Param() requestParameter: { id: string }): Promise<any> {
 
@@ -182,11 +211,13 @@ export class OrganisationController {
 
             const organisationProfile = await this.organisationService.getOrganisationById(requestParameter.id);
 
-            if ( organisationProfile.organisationLogo ) {
+            console.log(typeof file, file);
+
+            if (fileSystem.existsSync(organisationProfile.organisationLogo)) {
                 fileSystem.unlinkSync(organisationProfile.organisationLogo);
             }
 
-            const updateOrganisationLogo = await this.organisationService.updateOrganisationById(requestParameter.id, {organisationLogo: file.path})
+            const updateOrganisationLogo = await this.organisationService.updateOrganisationById(requestParameter.id, { organisationLogo: file.path });
 
             return response.status(HttpStatus.CREATED)
                 .jsonp(
@@ -201,12 +232,11 @@ export class OrganisationController {
     }
 
 
-
     // upload organisation logo
-    @ApiExcludeEndpoint(true)
-    @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard, PermissionGuard)
-    @Permissions(UserType.ORGANISATION)
+    @ApiExcludeEndpoint(false)
+    // @ApiBearerAuth()
+    // @UseGuards(JwtAuthGuard, PermissionGuard)
+    // @Permissions(UserType.ORGANISATION)
     @ApiParam({ required: true, name: 'id' })
     @ApiOperation({ summary: 'Set up bank' })
     @ApiResponse({ status: 200 })
@@ -217,34 +247,25 @@ export class OrganisationController {
 
             const createdAccountHolder = await this.organisationService.createAccountHolder({
                 "accountHolderCode": requestParameter.id,
-                "accountHolderDetails": {
+                "accountHolderDetails":{
                     "address": {
                         "country": "US"
                     },
-                    "businessDetails": {
-                        "doingBusinessAs": "Real Good Restaurant",
-                        "legalBusinessName": "Real Good Restaurant Inc.",
-                        "shareholders": [
-                            {
-                                "name": {
-                                    "firstName": "John",
-                                    "gender": "MALE",
-                                    "lastName": "Carpenter"
-                                },
-                                "address": {
-                                    "country": "NL"
-                                },
-                                "email": "testshareholder@email.com"
-                            }
-                        ]
-                    },
-                    "email": "test@email.com"
+                    "email":"test@adyen.com",
+                    "individualDetails":{
+                        "name":{
+                            "firstName":"First name",
+                            "gender":"MALE",
+                            "lastName":"Last Name"
+                        }
+                    }
                 },
-                "legalEntity": "Business"
+                "createDefaultAccount":true,
+                "legalEntity":"Individual"
             });
 
-            console.log(createdAccountHolder)
-            return response.status(HttpStatus.OK).jsonp(createdAccountHolder)
+            // console.log(createdAccountHolder)
+            return response.status(HttpStatus.OK).jsonp(createdAccountHolder);
 
         } catch (e) {
             this.handleErrorLogs(e);
@@ -254,66 +275,80 @@ export class OrganisationController {
     }
 
 
-
-
-
     // submit user request for customer
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard, PermissionGuard)
     @Permissions(UserType.ORGANISATION)
-    @ApiOperation({summary: swaggerDoc.UserRequest.summary })
+    @ApiOperation({ summary: swaggerDoc.UserRequest.summary })
     @ApiResponse({ status: 200 })
-    @ApiBody({type: fromDto.UserRequestDto, required: true})
+    @ApiBody({ type: fromDto.UserRequestDto, required: true })
     @ApiParam({ name: 'id', required: true })
     @Post('submitRequest/:id')
-    public async submitRequest(@Res() response: Response, @Body() reqBody: fromDto.UserRequestDto, @Param() reqParam: {id: string}): Promise<any> {
+    public async submitRequest(@Res() response: Response, @Body() reqBody: fromDto.UserRequestDto, @Param() reqParam: { id: string }): Promise<any> {
 
         try {
 
-            const requestObject: IUserRequest = await this.organisationService.submitUserRequest({ ...reqBody, organisation: reqParam.id });
+            const requestObject: IUserRequest = await this.organisationService.submitUserRequest({
+                ...reqBody,
+                organisation: reqParam.id,
+            });
 
-            if ( ! requestObject ) {
-                return response.status(HttpStatus.BAD_REQUEST).jsonp({status: false, message: text.REQUEST_SUBMIT_FAILED, response: null});
+            if (!requestObject) {
+                return response.status(HttpStatus.BAD_REQUEST).jsonp({
+                    status: false,
+                    message: text.REQUEST_SUBMIT_FAILED,
+                    response: null,
+                });
             }
 
-            return response.status(HttpStatus.CREATED).jsonp({status: true, message: text.REQUEST_SUBMIT_SUCCESS, response: requestObject});
+            return response.status(HttpStatus.CREATED).jsonp({
+                status: true,
+                message: text.REQUEST_SUBMIT_SUCCESS,
+                response: requestObject,
+            });
 
         } catch (e) {
             this.handleErrorLogs(e);
-            throw new HttpException(text.REQUEST_SUBMIT_FAILED, HttpStatus.INTERNAL_SERVER_ERROR)
+            throw new HttpException(text.REQUEST_SUBMIT_FAILED, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
     }
-    
 
 
     // get organisation profile
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard, PermissionGuard)
     @Permissions(UserType.ORGANISATION, UserType.ADMIN)
-    @ApiOperation({summary: swaggerDoc.OrgProfile.summary })
+    @ApiOperation({ summary: swaggerDoc.OrgProfile.summary })
     @ApiResponse({ status: 200 })
     @ApiParam({ name: 'id', required: true })
     @Get('profile/:id')
-    public async getOrganisationProfile(@Res() response: Response, @Param() reqParam: {id: string}): Promise<any> {
+    public async getOrganisationProfile(@Res() response: Response, @Param() reqParam: { id: string }): Promise<any> {
 
         try {
 
             const organisationProfile: IOrganisation = await this.organisationService.getOrganisationById(reqParam.id);
 
-            if ( ! organisationProfile ) {
-                return response.status(HttpStatus.BAD_REQUEST).jsonp({status: false, message: text.ORG_PROFILE_FAILED, response: null});
+            if (!organisationProfile) {
+                return response.status(HttpStatus.BAD_REQUEST).jsonp({
+                    status: false,
+                    message: text.ORG_PROFILE_FAILED,
+                    response: null,
+                });
             }
 
-            return response.status(HttpStatus.CREATED).jsonp({status: true, message: text.ORG_PROFILE_SUCCESS, response: organisationProfile});
+            return response.status(HttpStatus.CREATED).jsonp({
+                status: true,
+                message: text.ORG_PROFILE_SUCCESS,
+                response: organisationProfile,
+            });
 
         } catch (e) {
             this.handleErrorLogs(e);
-            throw new HttpException(text.ORG_PROFILE_FAILED, HttpStatus.INTERNAL_SERVER_ERROR)
+            throw new HttpException(text.ORG_PROFILE_FAILED, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
     }
-
 
 
     private handleErrorLogs = (error: any): void => console.log(error);

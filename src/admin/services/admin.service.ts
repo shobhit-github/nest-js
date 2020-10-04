@@ -15,6 +15,7 @@ import { IUserRequest } from '../interfaces/user-request.interface';
 import { Request as UserRequest } from '../../_sharedCollections/dbSchemas/request.schema';
 import { NestMailerService } from '../../_sharedCollections/mailer/nest-mailer.service';
 import { ICustomer } from '../../customer/interfaces/customer.interface';
+import { IProject } from '../../organisation/interfaces/project.interface';
 
 
 @Injectable()
@@ -111,10 +112,17 @@ export class AdminService {
         await this.userRequestModel.deleteMany({_id : {$in: ids} })
     );
 
+    // update multiple user request
+    public deleteManyfaqs = async (ids: string[]): Promise<any> => (
+        await this.faqModel.deleteMany({_id : {$in: ids} })
+    );
+
     // send verification code to customer email
     public sendRequestReply = async (email: string, message: string): Promise<any> => {
         return await this.nestMailerService.sendUserRequestReply( { to: email, context: { message } } );
     };
 
+    // get multiple user request by the ids
+    public getMultipleUserRequestsByIds = async (ids: string[]): Promise<IUserRequest[]> => (await this.userRequestModel.find({ _id: { $in: ids } }));
 
 }

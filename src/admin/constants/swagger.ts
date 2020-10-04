@@ -67,9 +67,16 @@ export const UpdateMultiple: ISwaggerDoc = {
 }
 
 
-
 export const DeleteMultiple: ISwaggerDoc = {
 
     summary: 'This api help to delete multiple profile of the customer, organisation and project in a single request',
+    bodyDescription: null
+}
+
+
+
+export const GetCms: ISwaggerDoc = {
+
+    summary: 'This api help to retrieve cms (terms and condition, privacy policy and about) to display on customer and organisation both',
     bodyDescription: null
 }

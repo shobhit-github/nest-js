@@ -9,7 +9,8 @@ import { Organisation } from "../../_sharedCollections/dbSchemas/organisation.sc
 import { PaymentService } from '../../customer/services/payment.service';
 import { IUserRequest } from '../../utility/interfaces/user-request.interface';
 import { Request as UserRequest } from '../../_sharedCollections/dbSchemas/request.schema';
-import { ICustomer } from '../../customer/interfaces/customer.interface';
+import { Project } from '../../_sharedCollections/dbSchemas/project.schema';
+import { IProject } from '../interfaces/project.interface';
 
 
 
@@ -17,6 +18,7 @@ import { ICustomer } from '../../customer/interfaces/customer.interface';
 export class OrganisationService {
 
     constructor(@InjectModel(Organisation.name) private readonly organisationModel: PaginateModel<IOrganisation>,
+                @InjectModel(Project.name) private readonly projectModel: PaginateModel<IProject> | Model<IProject> | any,
                 @InjectModel(UserRequest.name) private readonly requestModel: Model<IUserRequest>,
                 private readonly nestMailerService: NestMailerService,
                 @Inject(forwardRef(() => PaymentService)) private paymentService: PaymentService) {
@@ -39,7 +41,7 @@ export class OrganisationService {
 
     // Get a single organisation
     public getOrganisationById = async (organisationID): Promise<IOrganisation> => await this.organisationModel
-        .findById(organisationID, { password: 0 }).exec();
+        .findById(organisationID, { password: 0 }).populate({path: 'interests'});
 
 
     // Get a single organisation by object field
@@ -66,7 +68,7 @@ export class OrganisationService {
 
     // Edit organisation details
     public updateOrganisation = async (condition: any, updateOrganisation: any): Promise<IOrganisation> =>
-        await this.organisationModel.findOneAndUpdate(condition, updateOrganisation, { new: true, projection: {password: 0} });
+        await this.organisationModel.findOneAndUpdate(condition, updateOrganisation, { new: true });
 
 
     // update multiple records
@@ -91,6 +93,12 @@ export class OrganisationService {
     // get Organisation for recommendation list
     public getOrganisationByInterests = async (ids: string[], paging: any): Promise<PaginateResult<IOrganisation>> => (
         await this.organisationModel.paginate({interests: { $in: ids} }, {...paging})
+    );
+
+
+    // get Organisation for recommendation list
+    public searchOrganisation = async (condition: any[], paging: any): Promise<PaginateResult<IOrganisation>> => (
+        await this.organisationModel.paginate({ $or: condition }, {...paging})
     );
 
 

@@ -9,6 +9,7 @@ import * as _ from 'lodash';
 
 import * as fromDto from '../dto';
 import { PaginateResult } from 'mongoose';
+import * as asyncOperations from 'async';
 
 import * as text from '../constants/en';
 import * as swaggerDoc from '../constants/swagger';
@@ -385,6 +386,41 @@ export class CustomerController {
 
             const projectResponse = await this.interestBasedProjects(customerProfile.interests, queryReq);
             return response.status(HttpStatus.OK).jsonp(projectResponse);
+
+        } catch (e) {
+            this.handleErrorLogs(e);
+            throw new HttpException(text.INTERNAL_SERVER_ERROR, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    // get customer list by pagination
+    // @UseGuards(JwtAuthGuard, PermissionGuard)
+    // @Permissions(UserType.CUSTOMER)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: swaggerDoc.SearchProject.summary })
+    @ApiQuery({ name: 'query', type: Object })
+    @ApiParam({ name: 'keyword', required: true })
+    @Get('search/:keyword')
+    public async searchProjects(@Param() requestParameter: { for: string, keyword: string }, @Res() response: Response, @Query() queryReq: any): Promise<any> {
+
+        try {
+
+            const idsOfInterest: string[] = await this.customerService.searchInterests( requestParameter.keyword );
+
+            const projectQuery: any[] = [ {'organisation.interests': { $in: idsOfInterest } }, {description: new RegExp(requestParameter.keyword, 'i') }, {projectName: new RegExp(requestParameter.keyword, 'i')} ];
+            const organisationQuery: any[] = [ {interests: { $in: idsOfInterest } }, {organisationName: new RegExp(requestParameter.keyword, 'i')}, {description: new RegExp(requestParameter.keyword, 'i') } ];
+
+            const projects = (cb) => this.projectService.searchProject( projectQuery, queryReq).then( (result) => cb(null, result) ).catch( error => cb(error, null));
+            const organisations = (cb) => this.organisationService.searchOrganisation(organisationQuery, queryReq).then( r => cb(null, r)).catch( err => cb(err, null));
+
+
+            asyncOperations.parallel({ projects, organisations }, (err, result) => {
+                if (err)
+                    throw new HttpException(err.message, HttpStatus.INTERNAL_SERVER_ERROR)
+
+                return response.status(HttpStatus.OK).jsonp({ status: true, result });
+            })
 
         } catch (e) {
             this.handleErrorLogs(e);

@@ -58,7 +58,8 @@ export class Donation extends Document {
 
     @Prop({
         required: true,
-        type: String
+        type: String,
+        default: 'USD'
     })
     public readonly currency: string;
 

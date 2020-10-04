@@ -13,6 +13,7 @@ import { PaymentService } from './services/payment.service';
 import { Donation, DonationSchema } from '../_sharedCollections/dbSchemas/donation.schema';
 import { Request as UserRequest, RequestSchema } from '../_sharedCollections/dbSchemas/request.schema';
 import { AuthModule } from '../auth/auth.module';
+import { Categories, CategorySchema } from '../_sharedCollections/dbSchemas/categories.schema';
 
 @Module({
     controllers: [CustomerController, PaymentController],
@@ -21,7 +22,8 @@ import { AuthModule } from '../auth/auth.module';
         MongooseModule.forFeature([
             { schema: CustomerSchema, name: Customer.name, collection: 'Customers'},
             { schema: RequestSchema, name: UserRequest.name, collection: 'UserRequests'},
-            { schema: DonationSchema, name: Donation.name, collection: 'Donations'}
+            { schema: DonationSchema, name: Donation.name, collection: 'Donations'},
+            { schema: CategorySchema, name: Categories.name, collection: 'Categories'}
         ]),
         MulterModule.register(),
         ConfigModule,

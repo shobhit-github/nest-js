@@ -7,7 +7,6 @@ import { IProject } from '../interfaces/project.interface';
 import { IOrganisation } from '../interfaces/organisation.interface';
 import { Organisation } from '../../_sharedCollections/dbSchemas/organisation.schema';
 import * as fromAdminDto from '../../admin/dto';
-import { ICustomer } from '../../customer/interfaces/customer.interface';
 
 
 
@@ -35,8 +34,14 @@ export class ProjectService implements OnModuleInit {
             .lookup( { from: this.organisationCollectionName, localField: 'organisation', foreignField: '_id', as: 'organisation' } ).match ( { 'organisation.interests': { $in: ids } } ).project({organisation: 0})
     }
 
+
+    private aggregateSearchProject = (condition: any[]) => {
+        return this.projectModel.aggregate()
+            .lookup( { from: this.organisationCollectionName, localField: 'organisation', foreignField: '_id', as: 'organisation' } ) .match ({  $or: condition }).project({organisation: 0})
+    }
+
     // post a new project
-    public addProject = async (createProjectDTO: fromDto.CreateProjectDto): Promise<IProject> => (await new this.projectModel(createProjectDTO)).save();
+    public addProject = async (createProjectDTO: fromDto.SaveProjectDto): Promise<IProject> => (await new this.projectModel(createProjectDTO)).save();
 
 
     // get projects by query
@@ -77,6 +82,17 @@ export class ProjectService implements OnModuleInit {
     public getProjectsByInterest = async (ids: string[], paging: any): Promise<PaginateResult<IProject>> => (
             await this.projectModel.aggregatePaginate( this.aggregateInterestBasedProject(ids), {...paging} )
     );
+
+
+    // projects based on interests
+    public searchProject = async (condition: any[], paging: any): Promise<PaginateResult<IProject>> => (
+            await this.projectModel.aggregatePaginate( this.aggregateSearchProject(condition), {...paging} )
+    );
+
+
+    public getSingleProjectById = async (id: string): Promise<IProject> => (
+        await this.projectModel.findById( id ).populate({ path: 'organisation', populate: { path: 'interests'} })
+    )
 
 
     public getMultipleProjectsByIds = async (ids: string[]): Promise<IProject[]> => (await this.projectModel.find({ _id: { $in: ids } }));

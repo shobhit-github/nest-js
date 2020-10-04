@@ -270,13 +270,13 @@ export class AuthenticationController {
             switch (requestParameter.for) {
 
                 case 'customer':
-                    userObj = ( await this.customerService.getSingleCustomer({_id: <string>requestParameter.id}) ); break;
+                    userObj = ( await this.customerService.getSingleCustomerForAuth({_id: <string>requestParameter.id}) ); break;
 
                 case 'admin':
-                    userObj = ( await this.adminService.getSingleAdmin({ _id: <string>requestParameter.id}) ); break;
+                    userObj = ( await this.adminService.getSingleAdminForAuth({ _id: <string>requestParameter.id}) ); break;
 
                 case 'organisation':
-                    userObj = ( await this.organisationService.getSingleOrganisation({_id: <string>requestParameter.id}) ); break;
+                    userObj = ( await this.organisationService.getSingleOrganisationForAuth({_id: <string>requestParameter.id}) ); break;
 
                 default:
                     return response.status(HttpStatus.BAD_REQUEST).jsonp({status: false, message: text.INVALID_PARAMETER, response: null})

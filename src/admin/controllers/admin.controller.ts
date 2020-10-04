@@ -46,7 +46,7 @@ export class AdminController {
 
 
 
-    private getDataListByIds = async (ids: string[], type: 'customer' | 'organisation' | 'request' | 'project'): Promise<IOrganisation[] | IProject[] | ICustomer[]> => {
+    private getDataListByIds = async (ids: string[], type: 'customer' | 'organisation' | 'request' | 'project'): Promise<IOrganisation[] | IProject[] | IUserRequest[] | ICustomer[]> => {
 
         switch (type) {
 
@@ -57,8 +57,12 @@ export class AdminController {
                 return await this.organisationService.getMultipleOrganisationsByIds(ids);
             }
             case 'project': {
-                return  this.projectService.getMultipleProjectsByIds(ids);
+                return  await this.projectService.getMultipleProjectsByIds(ids);
             }
+            case 'request': {
+                return  await this.adminService.getMultipleUserRequestsByIds(ids);
+            }
+
             default: {
                 throw new HttpException(text.INVALID_PARAMETER, HttpStatus.INTERNAL_SERVER_ERROR);
             }
@@ -245,7 +249,7 @@ export class AdminController {
                 return response.status(HttpStatus.BAD_REQUEST).jsonp({status: false, message: text.CONTENT_UPDATED_FAILED, response: null});
             }
 
-            const listOfUpdatedInfo: ICustomer[] | IOrganisation[] | IProject[] = await this.getDataListByIds(reqBody.ids, reqParam.for);
+            const listOfUpdatedInfo: ICustomer[] | IOrganisation[] | IUserRequest[] | IProject[] = await this.getDataListByIds(reqBody.ids, reqParam.for);
             return response.status(HttpStatus.OK).jsonp({status: true, message: text.CONTENT_UPDATED_SUCCESS, response: listOfUpdatedInfo});
 
         } catch (e) {
@@ -263,9 +267,9 @@ export class AdminController {
     @ApiOperation({ summary: swaggerDoc.DeleteMultiple.summary })
     @ApiResponse({ status: 200 })
     @ApiParam({name: 'id', required: true})
-    @ApiParam({ name: 'for', type: String, enum: ['customer', 'organisation', 'project', 'request'] })
+    @ApiParam({ name: 'for', type: String, enum: ['customer', 'organisation', 'project', 'request', 'faq'] })
     @Delete(':for/delete/:id')
-    public async deleteMultiple(@Res() response: Response, @Param() reqParam: {id: string, for: 'customer' | 'request' | 'organisation' | 'project'}): Promise<any> {
+    public async deleteMultiple(@Res() response: Response, @Param() reqParam: {id: string, for: 'customer' | 'request' | 'organisation' | 'faq' | 'project'}): Promise<any> {
 
         try {
 
@@ -290,6 +294,10 @@ export class AdminController {
                     isDeleted = await this.adminService.deleteManyUserRequests(arrayOfIds); break;
                 }
 
+                case 'faq': {
+                    isDeleted = await this.adminService.deleteManyfaqs(arrayOfIds); break;
+                }
+
                 default: {
                     return new HttpException(text.DATA_LIST_FAILED, HttpStatus.INTERNAL_SERVER_ERROR);
                 }
@@ -312,10 +320,10 @@ export class AdminController {
     @UseGuards(JwtAuthGuard, PermissionGuard)
     @Permissions(UserType.ADMIN)
     @ApiBearerAuth()
-    @ApiOperation({summary: swaggerDoc.UpdateProfile.summary})
+    @ApiOperation({summary: swaggerDoc.GetCms.summary})
     @ApiResponse({ status: 200 })
     @ApiBody({required: true, type: fromAdminDto.UpdateContentDto})
-    @Put('content')
+    @Put('cms')
     public async manageAppContent(@Res() response: Response, @Body() updateAdminDto: fromAdminDto.UpdateContentDto): Promise<any> {
 
         try {
@@ -346,7 +354,7 @@ export class AdminController {
     @ApiOperation({summary: swaggerDoc.AddNewFaq.summary})
     @ApiResponse({ status: 200 })
     @ApiBody({required: true, type: fromAdminDto.FaqDto, isArray: true})
-    @ApiParam({name: 'for', required: true, enum: ['organisation', 'customer']})
+    @ApiParam({name: 'for', required: true, enum: ['organisation', 'customer', 'all']})
     @Post('faq/add/:for')
     public async addFaq(@Res() response: Response, @Body() faqBody: fromAdminDto.FaqDto[], @Param() reqParam: {for: string}): Promise<any> {
 
@@ -449,9 +457,10 @@ export class AdminController {
 
         try {
 
-            const { email, fullName, createdAt, subject, phone, requestStatus }: IUserRequest = await this.adminService.updateUserRequestById( reqParam.id, reqBody );
-            const replaceObj = { '{name}': fullName, '{email}': email, '{subject}': subject, '{phone}': phone, '{dateOfRequest}': __dt(createdAt) }
+            const updtaedRequestObject: IUserRequest = await this.adminService.updateUserRequestById( reqParam.id, reqBody );
+            const { email, fullName, createdAt, subject, phone, requestStatus } = updtaedRequestObject;
 
+            const replaceObj = { '{name}': fullName, '{email}': email, '{subject}': subject, '{phone}': phone, '{dateOfRequest}': __dt(createdAt) }
             const actualMessage: string = reqBody.messageResponse.replace( new RegExp( Object.keys(replaceObj).join('|'), 'gi' ), matched => replaceObj[matched] )
 
             const messageSetObj = await this.adminService.sendRequestReply( email, actualMessage)
@@ -460,7 +469,7 @@ export class AdminController {
                 return response.status(HttpStatus.OK).jsonp({success: false, message: text.QUERY_ANSWERED_FAIL, response: null})
             }
 
-            return response.status(HttpStatus.OK).jsonp({success: true, message: text.QUERY_ANSWERED_SUCCESS, response: { email, fullName, createdAt, subject, phone, requestStatus }})
+            return response.status(HttpStatus.OK).jsonp({success: true, message: text.QUERY_ANSWERED_SUCCESS, response: updtaedRequestObject})
 
 
 

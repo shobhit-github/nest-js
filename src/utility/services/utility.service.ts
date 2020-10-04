@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, PaginateModel } from 'mongoose';
+import { Model, PaginateModel, PaginateResult } from 'mongoose';
 import * as fromDto from '../dto';
 import { ICategory } from '../interfaces/utilities.inteface';
 import { Categories } from 'src/_sharedCollections/dbSchemas/categories.schema';
@@ -19,7 +19,7 @@ export class UtilityService {
     constructor(@InjectModel(Categories.name) private readonly categoryModel: Model<ICategory>,
                 @InjectModel(Content.name) private readonly contentModel: Model<IContent>,
                 @InjectModel(UserRequest.name) private readonly userRequestModel: PaginateModel<IUserRequest>,
-                @InjectModel(Faq.name) private readonly faqModel: Model<IFaq>) {
+                @InjectModel(Faq.name) private readonly faqModel: PaginateModel<IFaq>) {
     }
 
 
@@ -32,7 +32,7 @@ export class UtilityService {
 
 
     // get content
-    public getApplicationFaqs = async (condition: any): Promise<IFaq[]> => await this.faqModel.find( condition );
+    public getApplicationFaqs = async (condition: any, paging: any): Promise<PaginateResult<IFaq>> => await this.faqModel.paginate( condition, {...paging}  );
 
 
     // add new user request
