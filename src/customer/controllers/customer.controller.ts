@@ -395,8 +395,8 @@ export class CustomerController {
 
 
     // get customer list by pagination
-    // @UseGuards(JwtAuthGuard, PermissionGuard)
-    // @Permissions(UserType.CUSTOMER)
+    @UseGuards(JwtAuthGuard, PermissionGuard)
+    @Permissions(UserType.CUSTOMER)
     @ApiBearerAuth()
     @ApiOperation({ summary: swaggerDoc.SearchProject.summary })
     @ApiQuery({ name: 'query', type: Object })
